@@ -54,13 +54,67 @@ export default function LuxuryHeader() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [loadFromStorage, fetchSettings]);
 
+  // Dynamic Browser Tab / Page Title based on Admin Store Name
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const storeTitle = (mounted && settings.storeName?.trim()) || settings.storeName?.trim() || t.brandName;
+
+    if (pathname === '/') {
+      document.title = storeTitle;
+      return;
+    }
+
+    let pageLabel = '';
+    if (pathname === '/shop') {
+      pageLabel = language === 'ar' ? 'المجموعات' : 'Collections';
+    } else if (pathname === '/about') {
+      pageLabel = language === 'ar' ? 'عن الدار' : 'About Us';
+    } else if (pathname === '/contact') {
+      pageLabel = language === 'ar' ? 'تواصل معنا' : 'Contact Us';
+    } else if (pathname.startsWith('/admin')) {
+      pageLabel = language === 'ar' ? 'لوحة تحكم الإدارة' : 'Admin Dashboard';
+    } else if (pathname === '/wishlist') {
+      pageLabel = language === 'ar' ? 'المفضلة' : 'Wishlist';
+    } else if (pathname === '/orders') {
+      pageLabel = language === 'ar' ? 'الطلبات' : 'Orders';
+    } else if (pathname === '/account') {
+      pageLabel = language === 'ar' ? 'حسابي' : 'Account';
+    } else if (pathname === '/login') {
+      pageLabel = language === 'ar' ? 'تسجيل الدخول' : 'Sign In';
+    } else if (pathname === '/register') {
+      pageLabel = language === 'ar' ? 'إنشاء حساب جديد' : 'Register';
+    } else if (pathname === '/cart') {
+      pageLabel = language === 'ar' ? 'حقيبة التسوق' : 'Shopping Bag';
+    } else if (pathname === '/checkout') {
+      pageLabel = language === 'ar' ? 'إتمام الطلب' : 'Checkout';
+    } else if (pathname === '/shipping') {
+      pageLabel = language === 'ar' ? 'الشحن والتوصيل' : 'Shipping';
+    } else if (pathname === '/returns') {
+      pageLabel = language === 'ar' ? 'الاستبدال والاسترجاع' : 'Returns';
+    } else if (pathname === '/terms') {
+      pageLabel = language === 'ar' ? 'الشروط والأحكام' : 'Terms';
+    } else if (pathname === '/privacy') {
+      pageLabel = language === 'ar' ? 'سياسة الخصوصية' : 'Privacy';
+    } else if (pathname.startsWith('/product/')) {
+      if (document.title && document.title.includes('|') && !document.title.includes("L'ÉLÉGANCE")) {
+        return;
+      }
+      pageLabel = language === 'ar' ? 'تفاصيل العباية' : 'Product Details';
+    }
+
+    if (pageLabel) {
+      document.title = `${pageLabel} | ${storeTitle}`;
+    } else {
+      document.title = storeTitle;
+    }
+  }, [mounted, settings.storeName, pathname, language, t.brandName]);
+
   const navLinks = [
     { href: '/', label: t.nav.home },
     { href: '/shop', label: t.nav.shop },
     { href: `/shop?color=${encodeURIComponent('أسود ملكي')}`, label: t.nav.occasions },
     { href: '/about', label: t.nav.heritage },
     { href: '/contact', label: t.nav.contact },
-    ...(currentIsAdmin ? [{ href: '/admin', label: language === 'ar' ? 'الإدارة 👑' : 'Admin 👑' }] : []),
   ];
 
   const activeAnnouncementText =
@@ -340,6 +394,16 @@ export default function LuxuryHeader() {
                   >
                     {t.nav.orders}
                   </Link>
+                  {currentIsAdmin && (
+                    <Link
+                      href="/admin"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="text-lg font-serif hover:text-[var(--accent-gold)] transition-colors py-1 flex items-center gap-2 text-[var(--accent-gold)] font-bold"
+                    >
+                      <ShieldCheck className="w-4 h-4" />
+                      <span>{language === 'ar' ? 'لوحة تحكم الإدارة' : 'Admin Dashboard'}</span>
+                    </Link>
+                  )}
                 </div>
               </div>
 

@@ -25,6 +25,7 @@ import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useThemeStore } from '@/store/useThemeStore';
+import { useSiteSettingsStore } from '@/store/useSiteSettingsStore';
 import { translations } from '@/utils/translations';
 import { trackViewItem } from '@/utils/analytics';
 import SizeGuideModal from '@/components/ui/SizeGuideModal';
@@ -41,8 +42,16 @@ export default function ProductDetailPage() {
   const { addItem } = useCartStore();
   const { wishlistIds, toggleFavorite } = useWishlistStore();
   const { isAuthenticated } = useAuthStore();
+  const { settings } = useSiteSettingsStore();
 
   const [product, setProduct] = useState<Product | null>(null);
+
+  useEffect(() => {
+    if (product?.name) {
+      const store = settings.storeName?.trim() || t.brandName;
+      document.title = `${product.name} | ${store}`;
+    }
+  }, [product?.name, settings.storeName, t.brandName]);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [reviewsData, setReviewsData] = useState<ReviewsResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -260,7 +269,7 @@ export default function ProductDetailPage() {
     sku: `ABAYA-${product.id}`,
     brand: {
       '@type': 'Brand',
-      name: "L'ÉLÉGANCE",
+      name: settings.storeName?.trim() || "قصر العباية",
     },
     offers: {
       '@type': 'Offer',

@@ -44,11 +44,11 @@ const amiri = Amiri({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://abaya-luxury.com'),
   title: {
-    default: "L'ÉLÉGANCE | Haute Couture Abayas & Royal Silks",
-    template: "%s | L'ÉLÉGANCE Atelier",
+    default: "قصر العباية | دار عبايات الهوت كوتور والحرير الملكي",
+    template: "%s | قصر العباية",
   },
   description:
-    "Explore bespoke luxury Abayas handcrafted with authentic Japanese crepes, French lace, and pure Italian silks. Express white-glove delivery across Saudi Arabia, UAE, and GCC.",
+    "استكشفي أفخم تشكيلات العبايات الملكية المصنوعة من أرقى أقمشة الكريب الياباني والحرير الإيطالي الفاخر والمطرزة يدوياً. توصيل سريع لكافة المحافظات.",
   keywords: [
     'luxury abaya',
     'haute couture abaya',
@@ -56,32 +56,32 @@ export const metadata: Metadata = {
     'عبايات مناسبات',
     'حرير ياباني',
     'royal abaya',
-    'dubai luxury abayas',
-    'riyadh couture',
+    'قصر العباية',
+    'عبايات كوتور',
     'bespoke abaya atelier',
   ],
-  authors: [{ name: "L'ÉLÉGANCE Haute Couture" }],
+  authors: [{ name: 'قصر العباية' }],
   openGraph: {
-    title: "L'ÉLÉGANCE | Haute Couture Abaya Atelier",
-    description: "The pinnacle of Middle Eastern elegance. Handcrafted bespoke royal abayas.",
+    title: 'قصر العباية | دار عبايات الهوت كوتور',
+    description: 'دار أزياء الهوت كوتور المتخصصة في ابتكار وتصميم أرقى العبايات الملكية.',
     url: 'https://abaya-luxury.com',
-    siteName: "L'ÉLÉGANCE Atelier",
+    siteName: 'قصر العباية',
     images: [
       {
         url: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=1200&q=80',
         width: 1200,
         height: 630,
-        alt: "L'ÉLÉGANCE Haute Couture Abaya Collection",
+        alt: 'تشكيلة قصر العباية للهوت كوتور',
       },
     ],
-    locale: 'en_US',
-    alternateLocale: ['ar_SA', 'ar_AE'],
+    locale: 'ar_EG',
+    alternateLocale: ['ar_SA', 'ar_AE', 'en_US'],
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: "L'ÉLÉGANCE | Haute Couture Abayas",
-    description: "Handcrafted royal silken abayas with express white-glove GCC dispatch.",
+    title: 'قصر العباية | دار عبايات الهوت كوتور',
+    description: 'أرقى العبايات الملكية المصنوعة من أفخر الخامات وأحدث التصاميم.',
     images: ['https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=1200&q=80'],
   },
   robots: {
@@ -109,7 +109,7 @@ export default function RootLayout({
   const organizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: "L'ÉLÉGANCE Haute Couture Abaya Atelier",
+    name: 'قصر العباية',
     url: 'https://abaya-luxury.com',
     logo: 'https://abaya-luxury.com/logo.png',
     description: 'Premier Middle Eastern Haute Couture House specializing in bespoke royal abayas.',

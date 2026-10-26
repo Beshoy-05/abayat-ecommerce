@@ -13,13 +13,16 @@ const DEFAULT_HERO = {
   heroCardTitle: 'عباية الحرير الملكي المطرزة',
 };
 
-const LOCAL_STORAGE_KEY = 'abaya_site_hero_settings';
+const LOCAL_STORAGE_KEY = 'abaya_site_custom_settings';
+const LEGACY_HERO_KEY = 'abaya_site_hero_settings';
 
-const getStoredHero = (): Partial<SiteSettingDto> => {
+const getStoredSettings = (): Partial<SiteSettingDto> => {
   if (typeof window === 'undefined') return {};
   try {
     const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : {};
+    if (raw) return JSON.parse(raw);
+    const legacy = localStorage.getItem(LEGACY_HERO_KEY);
+    return legacy ? JSON.parse(legacy) : {};
   } catch {
     return {};
   }
@@ -27,9 +30,9 @@ const getStoredHero = (): Partial<SiteSettingDto> => {
 
 const DEFAULT_SETTINGS: SiteSettingDto = {
   id: 1,
-  storeName: "L'ÉLÉGANCE ABAYA ATELIER",
+  storeName: 'قصر العباية',
   aboutUs:
-    'أهلاً بكم في دار الأناقة للهوت كوتور والعبايات الملكية الفاخرة. متجرنا متخصص في تقديم أرقى وأحدث تصاميم العبايات العصرية والتقليدية بأعلى جودة وخامات حراير يابانية وإيطالية نادرة.',
+    'أهلاً بكم في دار قصر العباية للهوت كوتور والعبايات الملكية الفاخرة. متجرنا متخصص في تقديم أرقى وأحدث تصاميم العبايات العصرية والتقليدية بأعلى جودة وخامات حراير يابانية وإيطالية نادرة.',
   contactEmail: 'contact@abaya-luxury.com',
   contactPhone: '+201096212029',
   address: 'أبو كبير - محافظة الشرقية، جمهورية مصر العربية',
@@ -67,13 +70,13 @@ export const useSiteSettingsStore = create<SiteSettingsState>((set, get) => ({
   error: null,
 
   fetchSettings: async () => {
-    // If local hero was saved in browser localStorage, apply it safely on client side
-    const localHero = getStoredHero();
-    if (Object.keys(localHero).length > 0) {
+    // If local settings were saved in browser localStorage, apply immediately on client side
+    const local = getStoredSettings();
+    if (Object.keys(local).length > 0) {
       set((state) => ({
         settings: {
           ...state.settings,
-          ...localHero,
+          ...local,
         },
       }));
     }
@@ -83,25 +86,26 @@ export const useSiteSettingsStore = create<SiteSettingsState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       const data = await settingsService.getSettings();
-      const localHero = getStoredHero();
+      const currentStored = getStoredSettings();
       if (data && data.storeName) {
+        const merged: SiteSettingDto = {
+          ...DEFAULT_SETTINGS,
+          ...data,
+          ...currentStored, // Local admin changes take precedence if backend sync is pending
+        };
         set({
-          settings: {
-            ...DEFAULT_SETTINGS,
-            ...data,
-            heroBadge: data.heroBadge || localHero.heroBadge || DEFAULT_HERO.heroBadge,
-            heroTitle: data.heroTitle || localHero.heroTitle || DEFAULT_HERO.heroTitle,
-            heroSubtitle: data.heroSubtitle || localHero.heroSubtitle || DEFAULT_HERO.heroSubtitle,
-            heroImageUrl: data.heroImageUrl || localHero.heroImageUrl || DEFAULT_HERO.heroImageUrl,
-            heroCardTag: data.heroCardTag || localHero.heroCardTag || DEFAULT_HERO.heroCardTag,
-            heroCardTitle: data.heroCardTitle || localHero.heroCardTitle || DEFAULT_HERO.heroCardTitle,
-          },
+          settings: merged,
           isInitialized: true,
         });
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(merged));
+          } catch {}
+        }
       }
     } catch (err: any) {
-      console.warn('Could not fetch live site settings from API, using defaults:', err.message);
-      // Still mark as initialized so UI can render defaults smoothly
+      console.warn('Could not fetch live site settings from API, using defaults/cached:', err.message);
+      // Still mark as initialized so UI can render smoothly
       set({ isInitialized: true });
     } finally {
       set({ isLoading: false });
@@ -111,17 +115,9 @@ export const useSiteSettingsStore = create<SiteSettingsState>((set, get) => ({
   setSettings: (updated: SiteSettingDto) => {
     if (typeof window !== 'undefined') {
       try {
-        const heroData = {
-          heroBadge: updated.heroBadge,
-          heroTitle: updated.heroTitle,
-          heroSubtitle: updated.heroSubtitle,
-          heroImageUrl: updated.heroImageUrl,
-          heroCardTag: updated.heroCardTag,
-          heroCardTitle: updated.heroCardTitle,
-        };
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(heroData));
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
       } catch (e) {
-        console.warn('Could not cache hero settings in localStorage:', e);
+        console.warn('Could not cache site settings in localStorage:', e);
       }
     }
     set({ settings: { ...get().settings, ...updated } });

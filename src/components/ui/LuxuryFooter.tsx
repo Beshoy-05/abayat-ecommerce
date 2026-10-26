@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useThemeStore } from '@/store/useThemeStore';
 import { useSiteSettingsStore } from '@/store/useSiteSettingsStore';
@@ -23,6 +23,11 @@ export default function LuxuryFooter() {
   const t = translations[language];
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,11 +40,11 @@ export default function LuxuryFooter() {
   const whatsappNumber = settings.whatsappNumber || process.env.NEXT_PUBLIC_CONCIERGE_WHATSAPP || '+201096212029';
   const whatsappUrl = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
     language === 'ar'
-      ? 'مرحباً، أود الاستفسار عن تفصيل عباية فاخرة من دار الأناقة.'
-      : 'Hello, I would like to inquire about a bespoke couture Abaya order from L\'Élégance Atelier.'
+      ? `مرحباً، أود الاستفسار عن تفصيل عباية فاخرة من ${settings.storeName || 'دار الأناقة'}.`
+      : `Hello, I would like to inquire about a bespoke couture Abaya order from ${settings.storeName || "L'Élégance Atelier"}.`
   )}`;
 
-  const brandDisplayName = settings.storeName || t.brandName;
+  const brandDisplayName = mounted && settings.storeName ? settings.storeName : (settings.storeName || t.brandName);
   const brandDisplayAbout =
     settings.aboutUs ||
     (language === 'ar'
@@ -284,19 +289,9 @@ export default function LuxuryFooter() {
           </div>
         </div>
 
-        {/* Bottom row: Payment icons & Copyright */}
-        <div className="mt-16 pt-8 border-t border-[var(--border-subtle)] flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-[var(--text-secondary)]">
-          <p>© {new Date().getFullYear()} L&apos;ÉLÉGANCE Haute Couture Atelier. All rights reserved.</p>
-
-          {/* Curated Egyptian Payment Partners */}
-          <div className="flex flex-wrap items-center gap-3 font-mono text-[11px] opacity-75">
-            <span className="px-2.5 py-1 rounded bg-[var(--bg-secondary)] border border-[var(--border-subtle)]">Meeza (ميزة)</span>
-            <span className="px-2.5 py-1 rounded bg-[var(--bg-secondary)] border border-[var(--border-subtle)]">Instapay (انستاباي)</span>
-            <span className="px-2.5 py-1 rounded bg-[var(--bg-secondary)] border border-[var(--border-subtle)]">Vodafone Cash</span>
-            <span className="px-2.5 py-1 rounded bg-[var(--bg-secondary)] border border-[var(--border-subtle)]">Visa</span>
-            <span className="px-2.5 py-1 rounded bg-[var(--bg-secondary)] border border-[var(--border-subtle)]">Mastercard</span>
-            <span className="px-2.5 py-1 rounded bg-[var(--bg-secondary)] border border-[var(--border-subtle)]">Apple Pay</span>
-          </div>
+        {/* Bottom row: Dynamic Copyright */}
+        <div className="mt-16 pt-8 border-t border-[var(--border-subtle)] flex items-center justify-center text-center text-xs text-[var(--text-secondary)]">
+          <p>© {new Date().getFullYear()} {brandDisplayName}. {language === 'ar' ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'}</p>
         </div>
       </div>
     </footer>
