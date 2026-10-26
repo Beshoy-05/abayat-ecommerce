@@ -1,0 +1,150 @@
+@import "tailwindcss";
+
+:root {
+  /* ☀️ DAY MODE (Desert Sand & Warm Ivory) */
+  --bg-primary: #FAF8F5;
+  --bg-surface: #FFFFFF;
+  --bg-secondary: #F3EFEA;
+  --text-primary: #141312;
+  --text-secondary: #6B635B;
+  --accent-gold: #C5A880;
+  --accent-bronze: #9E7A4A;
+  --border-subtle: rgba(197, 168, 128, 0.22);
+  --gold-glow: rgba(197, 168, 128, 0.15);
+  --card-shadow: 0 10px 30px -10px rgba(158, 122, 74, 0.08);
+}
+
+.dark {
+  /* 🌙 NIGHT MODE (Royal Midnight Onyx) */
+  --bg-primary: #0B0C10;
+  --bg-surface: #13141B;
+  --bg-secondary: #1B1D26;
+  --text-primary: #F7F7F8;
+  --text-secondary: #A1A3B0;
+  --accent-gold: #E0B974;
+  --accent-bronze: #C49746;
+  --border-subtle: rgba(224, 185, 116, 0.18);
+  --gold-glow: rgba(224, 185, 116, 0.2);
+  --card-shadow: 0 14px 40px -12px rgba(0, 0, 0, 0.7);
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-body), 'Plus Jakarta Sans', system-ui, sans-serif;
+  transition: background-color 0.4s ease, color 0.4s ease;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Serif Headings */
+h1, h2, h3, .font-serif {
+  font-family: var(--font-serif), 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
+  letter-spacing: -0.01em;
+}
+
+/* Arabic Specific Typography */
+[dir="rtl"] body {
+  font-family: var(--font-arabic), 'Cairo', 'Amiri', system-ui, sans-serif;
+}
+
+[dir="rtl"] h1,
+[dir="rtl"] h2,
+[dir="rtl"] h3,
+[dir="rtl"] .font-serif {
+  font-family: var(--font-arabic-serif), 'Amiri', 'Cairo', serif;
+}
+
+/* Luxury Gold Foil & Shimmer Effects */
+.gold-gradient-text {
+  background: linear-gradient(135deg, var(--accent-gold) 0%, #FFFFFF 50%, var(--accent-bronze) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-gradient-bg {
+  background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-bronze) 100%);
+}
+
+.gold-border {
+  border: 1px solid var(--border-subtle);
+}
+
+.gold-border-glow:hover {
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 25px var(--gold-glow);
+}
+
+/* Bespoke Glassmorphism */
+.glass-nav {
+  background-color: rgba(11, 12, 16, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+:root:not(.dark) .glass-nav {
+  background-color: rgba(250, 248, 245, 0.85);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.glass-panel {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--card-shadow);
+}
+
+/* Custom Luxury Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-gold);
+}
+
+/* Keyframe Shimmer Animation for 21st.dev style elements */
+@keyframes goldShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer-anim {
+  background: linear-gradient(
+    90deg,
+    rgba(224, 185, 116, 0) 0%,
+    rgba(224, 185, 116, 0.25) 50%,
+    rgba(224, 185, 116, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: goldShimmer 3s infinite linear;
+}
+
+/* Subtle Film Grain Texture Overlay */
+.grain-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 999;
+  opacity: 0.02;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
