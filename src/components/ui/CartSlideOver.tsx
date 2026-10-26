@@ -24,8 +24,6 @@ export default function CartSlideOver() {
 
   const items = isAuthenticated && cart?.items ? cart.items : guestItems;
   const subtotal = getSubtotal();
-  const freeShippingThreshold = 500;
-  const progressPercent = Math.min((subtotal / freeShippingThreshold) * 100, 100);
 
   return (
     <AnimatePresence>
@@ -64,26 +62,6 @@ export default function CartSlideOver() {
                 </button>
               </div>
 
-              {/* Free Shipping Progress Meter */}
-              <div className="px-6 py-3.5 bg-[var(--bg-secondary)] border-b border-[var(--border-subtle)] text-xs">
-                <div className="flex justify-between items-center mb-1.5 font-medium">
-                  <span className="text-[var(--text-primary)]">
-                    {progressPercent >= 100
-                      ? language === 'ar' ? 'تهانينا! حصلتِ على الشحن السريع المجاني' : 'Complimentary Express Courier Unlocked'
-                      : language === 'ar'
-                        ? `أضيفي ${formatPrice(freeShippingThreshold - subtotal)} للشحن المجاني`
-                        : `Add ${formatPrice(freeShippingThreshold - subtotal)} for Free Courier Delivery`}
-                  </span>
-                  <span className="text-[var(--accent-gold)] font-bold">{Math.round(progressPercent)}%</span>
-                </div>
-                <div className="w-full bg-[var(--bg-primary)] h-1.5 rounded-full overflow-hidden border border-[var(--border-subtle)]">
-                  <div
-                    className="bg-gradient-to-r from-[var(--accent-gold)] to-[var(--accent-bronze)] h-full transition-all duration-500 rounded-full"
-                    style={{ width: `${progressPercent}%` }}
-                  />
-                </div>
-              </div>
-
               {/* Items List */}
               <div className="flex-1 overflow-y-auto p-6 space-y-5">
                 {items.length === 0 ? (
@@ -110,8 +88,8 @@ export default function CartSlideOver() {
                     >
                       <div className="w-20 h-24 rounded-lg overflow-hidden bg-[var(--bg-secondary)] relative flex-shrink-0" style={{ position: 'relative' }}>
                         <Image
-                          src={item.pictureUrl || 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=300&q=80'}
-                          alt={item.productName}
+                          src={item.pictureUrl || 'https://res.cloudinary.com/moak0zto/image/upload/v1792652133/abaya-ecommerce/abaya-ecommerce/1000646012_20261022065532_152bcfffeb5747e889d6560f74eb66ea.jpg'}
+                          alt={item.productName || 'عباية فاخرة'}
                           fill
                           className="object-cover"
                         />
@@ -120,15 +98,19 @@ export default function CartSlideOver() {
                       <div className="flex-1 flex flex-col justify-between">
                         <div>
                           <h4 className="font-serif text-sm font-medium text-[var(--text-primary)] line-clamp-1">
-                            {item.productName}
+                            {item.productName || 'عباية كوتور فاخرة'}
                           </h4>
-                          <div className="flex items-center gap-3 mt-1 text-xs text-[var(--text-secondary)]">
-                            <span className="px-2 py-0.5 rounded bg-[var(--bg-secondary)] border border-[var(--border-subtle)]">
-                              {item.color}
-                            </span>
-                            <span className="px-2 py-0.5 rounded bg-[var(--bg-secondary)] border border-[var(--border-subtle)]">
-                              Size {item.size}
-                            </span>
+                          <div className="flex items-center gap-2 mt-1 text-xs text-[var(--text-secondary)] flex-wrap">
+                            {item.color && (
+                              <span className="px-2 py-0.5 rounded bg-[var(--bg-secondary)] border border-[var(--border-subtle)]">
+                                {item.color}
+                              </span>
+                            )}
+                            {item.size && (
+                              <span className="px-2 py-0.5 rounded bg-[var(--bg-secondary)] border border-[var(--border-subtle)]">
+                                {language === 'ar' ? `مقاس ${item.size}` : `Size ${item.size}`}
+                              </span>
+                            )}
                           </div>
                         </div>
 

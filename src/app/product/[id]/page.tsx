@@ -532,14 +532,10 @@ export default function ProductDetailPage() {
                 <span>{isAdding ? t.pdp.adding : t.pdp.addToBag}</span>
               </button>
 
-              <div className="grid grid-cols-2 gap-3 text-[11px] text-[var(--text-secondary)] pt-2">
-                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-subtle)]">
-                  <Truck className="w-4 h-4 text-[var(--accent-gold)]" />
-                  <span>{language === 'ar' ? 'توصيل خلال 1-2 أيام' : '1-2 Days GCC Courier'}</span>
-                </div>
-                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-subtle)]">
+              <div className="pt-2 text-[11px] text-[var(--text-secondary)]">
+                <div className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-subtle)]">
                   <ShieldCheck className="w-4 h-4 text-[var(--accent-gold)]" />
-                  <span>{language === 'ar' ? 'ضمان 14 يوم استرجاع' : '14-Day Return Guarantee'}</span>
+                  <span>{language === 'ar' ? 'ضمان 14 يوم استرجاع ومعاينة' : '14-Day Return Guarantee'}</span>
                 </div>
               </div>
             </div>
@@ -568,8 +564,8 @@ export default function ProductDetailPage() {
                   title: t.pdp.tabs.shipping,
                   content:
                     language === 'ar'
-                      ? 'شحن سريع ومجاني بكافة مناطق المملكة والخليج عبر أسرع شركات الشحن مع تغليف الهوت كوتور الملكي الخاص.'
-                      : 'Complimentary express courier delivery across Saudi Arabia, UAE, and GCC within 1-2 business days in signature atelier packaging.',
+                      ? 'شحن وتوصيل فاخر وفقاً لشركة الشحن المختارة مع تغليف الهوت كوتور الملكي الخاص.'
+                      : 'Courier delivery in signature atelier packaging according to the selected delivery method.',
                 },
               ].map((tab) => (
                 <div key={tab.id} className="border border-[var(--border-subtle)] rounded-xl overflow-hidden bg-[var(--bg-surface)]">

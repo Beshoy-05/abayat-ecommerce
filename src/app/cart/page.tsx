@@ -97,9 +97,9 @@ export default function CartPage() {
                     <Image
                       src={
                         item.pictureUrl ||
-                        'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=300&q=80'
+                        'https://res.cloudinary.com/moak0zto/image/upload/v1792652133/abaya-ecommerce/abaya-ecommerce/1000646012_20261022065532_152bcfffeb5747e889d6560f74eb66ea.jpg'
                       }
-                      alt={item.productName}
+                      alt={item.productName || 'عباية فاخرة'}
                       fill
                       className="object-cover"
                     />
@@ -109,15 +109,19 @@ export default function CartPage() {
                       Haute Couture
                     </span>
                     <h3 className="font-serif text-base sm:text-lg font-light text-[var(--text-primary)]">
-                      {item.productName}
+                      {item.productName || 'عباية كوتور فاخرة'}
                     </h3>
-                    <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
-                      <span className="px-2.5 py-0.5 rounded bg-[var(--bg-secondary)] border border-[var(--border-subtle)]">
-                        {item.color}
-                      </span>
-                      <span className="px-2.5 py-0.5 rounded bg-[var(--bg-secondary)] border border-[var(--border-subtle)]">
-                        Size {item.size}
-                      </span>
+                    <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)] flex-wrap">
+                      {item.color && (
+                        <span className="px-2.5 py-0.5 rounded bg-[var(--bg-secondary)] border border-[var(--border-subtle)]">
+                          {item.color}
+                        </span>
+                      )}
+                      {item.size && (
+                        <span className="px-2.5 py-0.5 rounded bg-[var(--bg-secondary)] border border-[var(--border-subtle)]">
+                          {language === 'ar' ? `مقاس ${item.size}` : `Size ${item.size}`}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>

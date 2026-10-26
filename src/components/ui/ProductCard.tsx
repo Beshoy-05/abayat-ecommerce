@@ -24,7 +24,10 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
   const t = translations[language];
 
   const colorGroups: ColorGroup[] = product.colorGroups || [];
-  const initialImage = product.pictureUrl || product.images?.[0] || 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=600&q=80';
+  const initialImage =
+    product.pictureUrl ||
+    product.images?.[0] ||
+    'https://res.cloudinary.com/moak0zto/image/upload/v1792652133/abaya-ecommerce/abaya-ecommerce/1000646012_20261022065532_152bcfffeb5747e889d6560f74eb66ea.jpg';
 
   const [activeImage, setActiveImage] = useState<string>(initialImage);
   const [activeColor, setActiveColor] = useState<string>(colorGroups[0]?.color || '');

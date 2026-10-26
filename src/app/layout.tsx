@@ -68,7 +68,7 @@ export const metadata: Metadata = {
     siteName: 'قصر العباية',
     images: [
       {
-        url: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=1200&q=80',
+        url: 'https://res.cloudinary.com/moak0zto/image/upload/v1792652133/abaya-ecommerce/abaya-ecommerce/1000646012_20261022065532_152bcfffeb5747e889d6560f74eb66ea.jpg',
         width: 1200,
         height: 630,
         alt: 'تشكيلة قصر العباية للهوت كوتور',
@@ -82,7 +82,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'قصر العباية | دار عبايات الهوت كوتور',
     description: 'أرقى العبايات الملكية المصنوعة من أفخر الخامات وأحدث التصاميم.',
-    images: ['https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=1200&q=80'],
+    images: ['https://res.cloudinary.com/moak0zto/image/upload/v1792652133/abaya-ecommerce/abaya-ecommerce/1000646012_20261022065532_152bcfffeb5747e889d6560f74eb66ea.jpg'],
   },
   robots: {
     index: true,

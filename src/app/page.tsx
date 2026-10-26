@@ -185,9 +185,11 @@ export default function HomePage() {
                 </p>
               </div>
               <div>
-                <p className="font-serif text-2xl font-bold text-[var(--accent-gold)]">1-2</p>
+                <p className="font-serif text-2xl font-bold text-[var(--accent-gold)]">
+                  {language === 'ar' ? 'شحن' : 'Express'}
+                </p>
                 <p className="text-[11px] text-[var(--text-secondary)] uppercase tracking-wider mt-0.5">
-                  {language === 'ar' ? 'أيام توصيل بمصر' : 'Days Courier Egypt'}
+                  {language === 'ar' ? 'لكافة المحافظات' : 'Nationwide Courier'}
                 </p>
               </div>
               <div>

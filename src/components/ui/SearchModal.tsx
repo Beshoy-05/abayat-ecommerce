@@ -133,7 +133,7 @@ export default function SearchModal() {
                   >
                     <div className="w-14 h-16 rounded-lg bg-[var(--bg-primary)] overflow-hidden relative flex-shrink-0" style={{ position: 'relative' }}>
                       <Image
-                        src={product.pictureUrl || 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=200&q=80'}
+                        src={product.pictureUrl || 'https://res.cloudinary.com/moak0zto/image/upload/v1792652133/abaya-ecommerce/abaya-ecommerce/1000646012_20261022065532_152bcfffeb5747e889d6560f74eb66ea.jpg'}
                         alt={product.name}
                         fill
                         className="object-cover group-hover:scale-105 transition-transform"

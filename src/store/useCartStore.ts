@@ -2,7 +2,99 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Cart, CartItem, ProductVariant, Product } from '@/types/api';
 import { cartService } from '@/api/cart';
+import { productsService } from '@/api/products';
 import { trackAddToCart, trackRemoveFromCart } from '@/utils/analytics';
+
+const VARIANT_META_CACHE_KEY = 'abaya_cart_variant_meta';
+
+interface VariantMeta {
+  productId?: number;
+  productName: string;
+  color: string;
+  size: string;
+  unitPrice: number;
+  pictureUrl: string;
+}
+
+const getVariantMetaMap = (): Record<number, VariantMeta> => {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = localStorage.getItem(VARIANT_META_CACHE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+};
+
+const saveVariantMeta = (variantId: number, meta: VariantMeta) => {
+  if (typeof window === 'undefined') return;
+  try {
+    const map = getVariantMetaMap();
+    map[variantId] = meta;
+    localStorage.setItem(VARIANT_META_CACHE_KEY, JSON.stringify(map));
+  } catch {}
+};
+
+const enrichCartItems = async (items: CartItem[]): Promise<CartItem[]> => {
+  if (!items || items.length === 0) return [];
+  const map = getVariantMetaMap();
+
+  const missingMeta = items.some(
+    (it) => !it.productName || it.unitPrice === 0 || !it.pictureUrl || !map[it.productVariantId]
+  );
+
+  if (missingMeta) {
+    try {
+      const res = await productsService.getProducts({ pageSize: 50 });
+      if (res && res.data) {
+        res.data.forEach((p) => {
+          p.variants?.forEach((v) => {
+            map[v.id] = {
+              productId: p.id,
+              productName: p.name,
+              color: v.color,
+              size: v.size,
+              unitPrice: p.price,
+              pictureUrl: v.images?.[0] || p.pictureUrl || '',
+            };
+          });
+        });
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem(VARIANT_META_CACHE_KEY, JSON.stringify(map));
+          } catch {}
+        }
+      }
+    } catch (e) {
+      console.warn('Could not populate variant metadata from products catalog:', e);
+    }
+  }
+
+  return items.map((item) => {
+    const meta = map[item.productVariantId];
+    const productName = item.productName?.trim() || meta?.productName || 'عباية فاخرة';
+    const color = item.color?.trim() || meta?.color || '';
+    const size = item.size?.trim() || meta?.size || '';
+    const unitPrice = item.unitPrice > 0 ? item.unitPrice : meta?.unitPrice || 0;
+    const quantity = item.quantity || 1;
+    const totalPrice = item.totalPrice > 0 ? item.totalPrice : unitPrice * quantity;
+    const pictureUrl =
+      item.pictureUrl ||
+      meta?.pictureUrl ||
+      'https://res.cloudinary.com/moak0zto/image/upload/v1792652133/abaya-ecommerce/abaya-ecommerce/1000646012_20261022065532_152bcfffeb5747e889d6560f74eb66ea.jpg';
+
+    return {
+      ...item,
+      productName,
+      color,
+      size,
+      unitPrice,
+      quantity,
+      totalPrice,
+      pictureUrl,
+    };
+  });
+};
 
 interface CartState {
   cart: Cart | null;
@@ -41,13 +133,36 @@ export const useCartStore = create<CartState>()(
         try {
           set({ isLoading: true });
           const liveCart = await cartService.getCart();
-          set({ cart: liveCart, isLoading: false });
+          if (liveCart && Array.isArray(liveCart.items)) {
+            const enriched = await enrichCartItems(liveCart.items);
+            const computedTotal = enriched.reduce((sum, it) => sum + (it.totalPrice || 0), 0);
+            set({
+              cart: {
+                ...liveCart,
+                items: enriched,
+                totalAmount: liveCart.totalAmount > 0 ? liveCart.totalAmount : computedTotal,
+              },
+              isLoading: false,
+            });
+          } else {
+            set({ cart: liveCart, isLoading: false });
+          }
         } catch {
           set({ isLoading: false });
         }
       },
 
       addItem: async ({ product, variant, quantity, isAuthenticated }) => {
+        // Cache metadata for this variant immediately
+        saveVariantMeta(variant.id, {
+          productId: product.id,
+          productName: product.name,
+          color: variant.color,
+          size: variant.size,
+          unitPrice: product.price,
+          pictureUrl: variant.images?.[0] || product.pictureUrl || '',
+        });
+
         // Stock Guard check (Rule #9)
         const currentGuestItem = get().guestItems.find(
           (i) => i.productVariantId === variant.id
@@ -169,8 +284,10 @@ export const useCartStore = create<CartState>()(
 
       getSubtotal: () => {
         const { cart, guestItems } = get();
-        if (cart?.totalAmount) {
-          return cart.totalAmount;
+        if (cart?.items && cart.items.length > 0) {
+          const itemsSum = cart.items.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
+          if (itemsSum > 0) return itemsSum;
+          if (cart.totalAmount > 0) return cart.totalAmount;
         }
         return guestItems.reduce((sum, item) => sum + item.totalPrice, 0);
       },

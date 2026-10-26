@@ -859,7 +859,11 @@ export default function AdminDashboardPage() {
                 <div>
                   <div className="aspect-[3/4] rounded-2xl overflow-hidden relative bg-[var(--bg-secondary)] mb-3">
                     <img
-                      src={product.pictureUrl || product.images?.[0] || 'https://images.unsplash.com/photo-1584917865442-de89df76afd3'}
+                      src={
+                        product.pictureUrl ||
+                        product.images?.[0] ||
+                        'https://res.cloudinary.com/moak0zto/image/upload/v1792652133/abaya-ecommerce/abaya-ecommerce/1000646012_20261022065532_152bcfffeb5747e889d6560f74eb66ea.jpg'
+                      }
                       alt={product.name}
                       className="w-full h-full object-cover"
                     />

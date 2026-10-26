@@ -91,7 +91,7 @@ export default function AdminDashboardOverview({
             productName: 'Royal Silk Black Abaya (عباية الحرير الملكي)',
             totalQuantitySold: 42,
             totalRevenue: 14700.0,
-            imageUrl: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=300&q=80',
+            imageUrl: 'https://res.cloudinary.com/moak0zto/image/upload/v1792652133/abaya-ecommerce/abaya-ecommerce/1000646012_20261022065532_152bcfffeb5747e889d6560f74eb66ea.jpg',
           },
           {
             productId: 14,

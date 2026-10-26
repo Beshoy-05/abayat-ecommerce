@@ -109,7 +109,7 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
             <div className="p-6 bg-[var(--bg-secondary)] flex flex-col justify-between">
               <div className="aspect-[3/4] relative rounded-xl overflow-hidden bg-[var(--bg-primary)]">
                 <Image
-                  src={activeImage || 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=600&q=80'}
+                  src={activeImage || 'https://res.cloudinary.com/moak0zto/image/upload/v1792652133/abaya-ecommerce/abaya-ecommerce/1000646012_20261022065532_152bcfffeb5747e889d6560f74eb66ea.jpg'}
                   alt={product.name}
                   fill
                   className="object-cover"
