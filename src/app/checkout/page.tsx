@@ -22,6 +22,7 @@ import {
   Smartphone,
   QrCode,
   Image as ImageIcon,
+  Trash2,
 } from 'lucide-react';
 import { deliveryService } from '@/api/delivery';
 import { ordersService } from '@/api/orders';
@@ -111,13 +112,19 @@ export default function CheckoutPage() {
   const handleReceiptUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const oldReceiptUrl = receiptUrl;
 
     try {
       setIsUploadingReceipt(true);
       setErrorMsg(null);
       setReceiptFile(file);
       const res = await imagesService.uploadImage(file);
-      setReceiptUrl(res.secureUrl || res.url);
+      const newUrl = res.secureUrl || res.url;
+      // Delete old receipt from Cloudinary if replacing
+      if (oldReceiptUrl && oldReceiptUrl !== newUrl) {
+        imagesService.deleteImage(oldReceiptUrl).catch(console.error);
+      }
+      setReceiptUrl(newUrl);
     } catch (err: any) {
       console.error('Receipt upload error:', err);
       setErrorMsg(
@@ -738,15 +745,31 @@ export default function CheckoutPage() {
                         </p>
                       </div>
                     </div>
-                    <label className="text-[11px] font-semibold text-[var(--accent-gold)] hover:underline cursor-pointer shrink-0">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleReceiptUpload}
-                        className="hidden"
-                      />
-                      {language === 'ar' ? 'تغيير الصورة' : 'Change Image'}
-                    </label>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <label className="text-[11px] font-semibold text-[var(--accent-gold)] hover:underline cursor-pointer shrink-0">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleReceiptUpload}
+                          className="hidden"
+                        />
+                        {language === 'ar' ? 'تغيير الصورة' : 'Change Image'}
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (receiptUrl) {
+                            imagesService.deleteImage(receiptUrl).catch(console.error);
+                          }
+                          setReceiptUrl('');
+                          setReceiptFile(null);
+                        }}
+                        className="p-1 rounded-lg text-rose-400 hover:text-white hover:bg-rose-500/20 transition-colors"
+                        title={language === 'ar' ? 'حذف الإيصال' : 'Delete Receipt'}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>

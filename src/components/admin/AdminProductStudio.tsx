@@ -199,6 +199,11 @@ export default function AdminProductStudio({
   const [customSizeInput, setCustomSizeInput] = useState('');
   const [customSizeQty, setCustomSizeQty] = useState('10');
 
+  // Track newly uploaded images during this studio session (for Dropzone cancel/undo ❌ & cleanup)
+  const [newSessionImages, setNewSessionImages] = useState<string[]>([]);
+  // Set of image URLs currently being deleted from Cloudinary
+  const [deletingImages, setDeletingImages] = useState<Set<string>>(new Set());
+
   const activeVariant =
     colorVariants.find((c) => c.id === activeColorId) || colorVariants[0];
 
@@ -259,6 +264,7 @@ export default function AdminProductStudio({
       const uploadedUrls = await imagesService.uploadMultipleImages(files);
 
       if (uploadedUrls.length > 0) {
+        setNewSessionImages((prev) => [...prev, ...uploadedUrls]);
         updateActiveVariant({
           images: [...activeVariant.images, ...uploadedUrls],
         });
@@ -276,11 +282,61 @@ export default function AdminProductStudio({
     }
   };
 
-  // Remove an image from active color
-  const handleRemoveImageFromActiveColor = (imgUrl: string) => {
-    updateActiveVariant({
-      images: activeVariant.images.filter((url) => url !== imgUrl),
-    });
+  // Remove an image from active color (deletes from Cloudinary via DELETE /api/Images/{publicId})
+  const handleRemoveImageFromActiveColor = async (
+    imgUrl: string,
+    isUndoCancel: boolean = false
+  ) => {
+    try {
+      setDeletingImages((prev) => new Set(prev).add(imgUrl));
+
+      // 1. Remove from active variant state immediately for responsive UI
+      updateActiveVariant({
+        images: activeVariant.images.filter((url) => url !== imgUrl),
+      });
+
+      // 2. Remove from new session tracking
+      setNewSessionImages((prev) => prev.filter((u) => u !== imgUrl));
+
+      // 3. Delete from Cloudinary backend endpoint
+      const wasDeleted = await imagesService.deleteImage(imgUrl);
+
+      if (wasDeleted) {
+        showToast(
+          'success',
+          isUndoCancel
+            ? 'تم التراجع عن الرفع وحذف الصورة من Cloudinary بنجاح'
+            : 'تم حذف الصورة من معرض القطعة وحذفها من Cloudinary بنجاح'
+        );
+      } else {
+        showToast('success', 'تمت إزالة الصورة من المعرض');
+      }
+    } catch (err) {
+      console.error('Error removing image:', err);
+      showToast('error', 'تعذر حذف الصورة من السيرفر');
+    } finally {
+      setDeletingImages((prev) => {
+        const next = new Set(prev);
+        next.delete(imgUrl);
+        return next;
+      });
+    }
+  };
+
+  // Cancel studio with automatic cleanup of unsaved session uploads
+  const handleCancelStudio = () => {
+    if (newSessionImages.length > 0) {
+      const confirmDiscard = confirm(
+        'هل تود التراجع وإغلاق المحرر؟ سيتم حذف الصور التي قمت برفعها مؤخراً لتنظيف التخزين في Cloudinary.'
+      );
+      if (!confirmDiscard) return;
+
+      // Clean up orphaned images in background
+      newSessionImages.forEach((imgUrl) => {
+        imagesService.deleteImage(imgUrl).catch(console.error);
+      });
+    }
+    onCancel();
   };
 
   // Toggle size active state
@@ -517,6 +573,7 @@ export default function AdminProductStudio({
         await productsService.createProduct(payload);
         showToast('success', 'تم حفظ ونشر القطعة الملكية بالكتالوج بنجاح!');
       }
+      setNewSessionImages([]);
       onSuccess();
     } catch (err: any) {
       console.error('Failed to create product:', err);
@@ -540,7 +597,7 @@ export default function AdminProductStudio({
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={onCancel}
+                onClick={handleCancelStudio}
                 className="px-3.5 py-1.5 rounded-full border border-[var(--border-subtle)] hover:border-[var(--accent-gold)] text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors flex items-center gap-1.5"
               >
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -869,44 +926,78 @@ export default function AdminProductStudio({
                         <img
                           src={imgUrl}
                           alt={`${activeVariant.colorName} - ${imgIndex + 1}`}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          className={`w-full h-full object-cover transition-transform duration-300 ${
+                            deletingImages.has(imgUrl) ? 'opacity-30 scale-95' : 'group-hover:scale-105'
+                          }`}
                         />
 
                         {/* Cover Badge */}
                         {isCover && (
-                          <span className="absolute top-2 right-2 text-[9px] font-bold bg-[var(--accent-gold)] text-black px-2 py-0.5 rounded-full shadow-md">
+                          <span className="absolute top-2 right-2 text-[9px] font-bold bg-[var(--accent-gold)] text-black px-2 py-0.5 rounded-full shadow-md z-10">
                             الغلاف الرئيسي
                           </span>
                         )}
 
-                        {/* Overlay Controls */}
-                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-between p-2">
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveImageFromActiveColor(imgUrl)}
-                            className="p-1.5 rounded-full bg-rose-500 text-white self-end hover:scale-110 transition-transform"
-                            title="حذف الصورة"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                        {/* Newly Uploaded Badge */}
+                        {newSessionImages.includes(imgUrl) && !isCover && (
+                          <span className="absolute top-2 right-2 text-[8px] font-medium bg-emerald-500/90 text-white px-1.5 py-0.5 rounded-full shadow-md z-10">
+                            مرفوعة الآن
+                          </span>
+                        )}
 
-                          {!isCover && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                // Reorder so this image becomes cover
-                                const reordered = [
-                                  imgUrl,
-                                  ...activeVariant.images.filter((u) => u !== imgUrl),
-                                ];
-                                updateActiveVariant({ images: reordered });
-                              }}
-                              className="text-[9px] font-bold px-2 py-1 rounded-full bg-white/20 text-white backdrop-blur-md hover:bg-[var(--accent-gold)] hover:text-black transition-colors"
-                            >
-                              تعيين كغلاف
-                            </button>
-                          )}
-                        </div>
+                        {/* Deleting Spinner Overlay */}
+                        {deletingImages.has(imgUrl) && (
+                          <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center p-2 z-20">
+                            <div className="w-5 h-5 border-2 border-[var(--accent-gold)] border-t-transparent rounded-full animate-spin mb-1" />
+                            <span className="text-[9px] text-white font-medium">جارٍ الحذف...</span>
+                          </div>
+                        )}
+
+                        {/* Overlay Controls */}
+                        {!deletingImages.has(imgUrl) && (
+                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-between p-2 z-10">
+                            <div className="flex items-center gap-1.5 self-end">
+                              {/* ❌ Undo Dropzone Upload Button (if newly uploaded in this session) */}
+                              {newSessionImages.includes(imgUrl) && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveImageFromActiveColor(imgUrl, true)}
+                                  className="p-1.5 rounded-full bg-amber-600 hover:bg-amber-700 text-white hover:scale-110 transition-transform shadow-md"
+                                  title="إلغاء الرفع والتراجع (حذف من Cloudinary)"
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+
+                              {/* 🗑️ Delete Image from Gallery & Cloudinary */}
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveImageFromActiveColor(imgUrl, false)}
+                                className="p-1.5 rounded-full bg-rose-500 hover:bg-rose-600 text-white hover:scale-110 transition-transform shadow-md"
+                                title="حذف الصورة نهائياً من Cloudinary"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+
+                            {!isCover && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  // Reorder so this image becomes cover
+                                  const reordered = [
+                                    imgUrl,
+                                    ...activeVariant.images.filter((u) => u !== imgUrl),
+                                  ];
+                                  updateActiveVariant({ images: reordered });
+                                }}
+                                className="text-[9px] font-bold px-2 py-1 rounded-full bg-white/20 text-white backdrop-blur-md hover:bg-[var(--accent-gold)] hover:text-black transition-colors"
+                              >
+                                تعيين كغلاف
+                              </button>
+                            )}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -1228,7 +1319,7 @@ export default function AdminProductStudio({
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <button
               type="button"
-              onClick={onCancel}
+              onClick={handleCancelStudio}
               disabled={submitting}
               className="flex-1 sm:flex-none px-6 py-3 rounded-full border border-[var(--border-subtle)] hover:border-[var(--accent-gold)] text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors font-semibold"
             >

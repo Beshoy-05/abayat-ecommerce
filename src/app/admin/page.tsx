@@ -278,6 +278,23 @@ export default function AdminDashboardPage() {
     if (!confirm(`هل أنت متأكد من حذف المنتج #${id} نهائياً؟`)) return;
     try {
       setLoading(true);
+
+      // Clean up Cloudinary images associated with this product
+      const targetProduct = products.find((p) => p.id === id);
+      if (targetProduct) {
+        const productImages = [
+          targetProduct.pictureUrl,
+          ...(targetProduct.images || []),
+          ...(targetProduct.variants?.flatMap((v) => v.images || []) || []),
+          ...(targetProduct.colorGroups?.flatMap((cg) => cg.images || []) || []),
+        ].filter(Boolean) as string[];
+
+        const uniqueImages = Array.from(new Set(productImages));
+        uniqueImages.forEach((imgUrl) => {
+          imagesService.deleteImage(imgUrl).catch(console.error);
+        });
+      }
+
       await productsService.deleteProduct(id);
       showToast('success', `تم حذف المنتج #${id} بنجاح`);
       await loadProducts();

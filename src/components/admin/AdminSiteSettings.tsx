@@ -21,6 +21,7 @@ import {
   Share2,
   Upload,
   Image as ImageIcon,
+  Trash2,
 } from 'lucide-react';
 import { settingsService } from '@/api/settings';
 import { imagesService } from '@/api/images';
@@ -84,19 +85,26 @@ export default function AdminSiteSettings({ showToast }: AdminSiteSettingsProps)
   const [returnPolicy, setReturnPolicy] = useState(settings.returnPolicy || '');
   const [shippingPolicy, setShippingPolicy] = useState(settings.shippingPolicy || '');
 
-  // Upload hero image directly
+  // Upload hero image directly (deletes old image from Cloudinary if replacing)
   const handleHeroImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const previousImageUrl = heroImageUrl;
     try {
       setUploadingHeroImg(true);
       const res = await imagesService.uploadImage(file);
       const url = res.secureUrl || res.url;
       if (url) {
+        // Clean up old custom image from Cloudinary
+        if (previousImageUrl && previousImageUrl !== url) {
+          imagesService.deleteImage(previousImageUrl).catch(console.error);
+        }
         setHeroImageUrl(url);
         showToast(
           'success',
-          language === 'ar' ? 'تم رفع صورة الواجهة بنجاح!' : 'Hero image uploaded successfully!'
+          language === 'ar'
+            ? 'تم رفع صورة الواجهة وحذف الصورة السابقة من Cloudinary بنجاح!'
+            : 'Hero image uploaded and previous image removed from Cloudinary!'
         );
       }
     } catch (err: any) {
@@ -434,11 +442,21 @@ export default function AdminSiteSettings({ showToast }: AdminSiteSettingsProps)
 
                     <button
                       type="button"
-                      onClick={() =>
+                      onClick={() => {
+                        const previousImageUrl = heroImageUrl;
+                        if (previousImageUrl) {
+                          imagesService.deleteImage(previousImageUrl).catch(console.error);
+                        }
                         setHeroImageUrl(
                           'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=1000&q=85'
-                        )
-                      }
+                        );
+                        showToast(
+                          'success',
+                          language === 'ar'
+                            ? 'تمت استعادة الصورة الافتراضية وحذف الصورة المخصصة من Cloudinary'
+                            : 'Default abaya restored and custom image removed from Cloudinary'
+                        );
+                      }}
                       className="px-4 py-2.5 rounded-xl border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] hover:text-[var(--accent-gold)] hover:border-[var(--accent-gold)] transition-colors"
                     >
                       {language === 'ar' ? 'استعادة عباية كوتور فاخرة' : 'Use Default Abaya'}
@@ -468,12 +486,33 @@ export default function AdminSiteSettings({ showToast }: AdminSiteSettingsProps)
 
                 <div className="relative rounded-2xl overflow-hidden border border-[var(--border-subtle)] bg-[var(--bg-secondary)] shadow-xl aspect-[3/4] max-w-sm mx-auto">
                   {heroImageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={heroImageUrl}
-                      alt="Hero preview"
-                      className="w-full h-full object-cover"
-                    />
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={heroImageUrl}
+                        alt="Hero preview"
+                        className="w-full h-full object-cover"
+                      />
+                      {/* Delete / Remove Image from Cloudinary button */}
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const previousImageUrl = heroImageUrl;
+                          const wasDeleted = await imagesService.deleteImage(previousImageUrl);
+                          setHeroImageUrl('');
+                          showToast(
+                            'success',
+                            wasDeleted
+                              ? (language === 'ar' ? 'تم حذف صورة الواجهة من Cloudinary بنجاح' : 'Hero image deleted from Cloudinary')
+                              : (language === 'ar' ? 'تمت إزالة صورة الواجهة' : 'Hero image removed')
+                          );
+                        }}
+                        className="absolute top-3 left-3 p-2 rounded-xl bg-black/70 hover:bg-rose-600 text-white backdrop-blur-md transition-all shadow-lg z-20 group"
+                        title={language === 'ar' ? 'حذف صورة الواجهة من Cloudinary' : 'Delete Hero Image from Cloudinary'}
+                      >
+                        <Trash2 className="w-4 h-4 text-white group-hover:scale-110 transition-transform" />
+                      </button>
+                    </>
                   ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center text-[var(--text-secondary)] gap-2">
                       <ImageIcon className="w-10 h-10 opacity-30" />
