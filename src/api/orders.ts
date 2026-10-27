@@ -31,14 +31,14 @@ export const ordersService = {
     return res.data;
   },
 
-  // GET /api/Orders (Admin only: returns PaginatedList<OrderDto>)
+  // GET /api/Orders/all (Admin only: returns PaginatedList<OrderDto>)
   getAllOrders: async (pageIndex = 1, pageSize = 20): Promise<{ data: Order[]; totalCount: number; totalPages: number }> => {
     let res: any;
     try {
-      res = await apiClient.get<any>(`/api/Orders?pageIndex=${pageIndex}&pageSize=${pageSize}`);
-    } catch {
-      // Fallback in case /api/Orders/all was previously routed
       res = await apiClient.get<any>(`/api/Orders/all?pageIndex=${pageIndex}&pageSize=${pageSize}`);
+    } catch {
+      // Fallback in case endpoint was routed without /all
+      res = await apiClient.get<any>(`/api/Orders?pageIndex=${pageIndex}&pageSize=${pageSize}`);
     }
     // Handle both PaginatedList format and direct array
     if (res.data && Array.isArray(res.data.data)) {

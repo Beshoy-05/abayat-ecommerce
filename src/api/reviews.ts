@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { ReviewsResponse } from '@/types/api';
+import { ReviewsResponse, GetReviewesQueryParameter } from '@/types/api';
 
 export interface CreateReviewPayload {
   productId: number;
@@ -9,8 +9,18 @@ export interface CreateReviewPayload {
 
 export const reviewsService = {
   // GET /api/Reviews/product/{productId}
-  getProductReviews: async (productId: number | string): Promise<ReviewsResponse> => {
-    const res = await apiClient.get<ReviewsResponse>(`/api/Reviews/product/${productId}`);
+  getProductReviews: async (
+    productId: number | string,
+    params?: GetReviewesQueryParameter
+  ): Promise<ReviewsResponse> => {
+    const cleanParams: Record<string, string | number> = {};
+    if (params?.pageIndex) cleanParams.pageIndex = params.pageIndex;
+    if (params?.pageSize) cleanParams.pageSize = params.pageSize;
+    if (params?.sortingOption) cleanParams.sortingOption = params.sortingOption;
+
+    const res = await apiClient.get<ReviewsResponse>(`/api/Reviews/product/${productId}`, {
+      params: cleanParams,
+    });
     return res.data;
   },
 

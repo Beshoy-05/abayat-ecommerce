@@ -17,10 +17,12 @@ import {
   ChevronDown,
   AlertCircle,
   ArrowRight,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { productsService } from '@/api/products';
 import { reviewsService } from '@/api/reviews';
-import { Product, ColorGroup, SizeStock, ReviewsResponse } from '@/types/api';
+import { Product, ColorGroup, SizeStock, ReviewsResponse, Review, ReviewSortOptions } from '@/types/api';
 import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -69,6 +71,10 @@ export default function ProductDetailPage() {
   const [activeAccordion, setActiveAccordion] = useState<string | null>('craft');
   const [showStickyBar, setShowStickyBar] = useState(false);
 
+  // Review Sorting State (ReviewSortOptions: DateAsc=1, DateDesc=2, RatingAsc=3, RatingDesc=4)
+  const [reviewSort, setReviewSort] = useState<ReviewSortOptions>(ReviewSortOptions.DateDesc);
+  const [isSortingReviews, setIsSortingReviews] = useState(false);
+
   // Review Form State (Golden Rule #8)
   const [reviewStars, setReviewStars] = useState<number>(5);
   const [reviewMessage, setReviewMessage] = useState('');
@@ -88,10 +94,10 @@ export default function ProductDetailPage() {
         setProduct(data);
         trackViewItem(data);
 
-        // Fetch related products & reviews in parallel
+        // Fetch related products & reviews in parallel with default sorting DateDesc (2)
         const [related, reviews] = await Promise.allSettled([
           productsService.getProducts({ categoryId: data.categoryId, pageSize: 4 }),
-          reviewsService.getProductReviews(id as string),
+          reviewsService.getProductReviews(id as string, { sortingOption: ReviewSortOptions.DateDesc, pageSize: 10 }),
         ]);
 
         if (related.status === 'fulfilled') {
@@ -230,6 +236,24 @@ export default function ProductDetailPage() {
     }
   };
 
+  const handleReviewSortChange = async (sortOption: ReviewSortOptions) => {
+    setReviewSort(sortOption);
+    if (!product?.id) return;
+    try {
+      setIsSortingReviews(true);
+      const updated = await reviewsService.getProductReviews(product.id, {
+        sortingOption: sortOption,
+        pageIndex: 1,
+        pageSize: 10,
+      });
+      setReviewsData(updated);
+    } catch (err) {
+      console.error('Failed to sort reviews:', err);
+    } finally {
+      setIsSortingReviews(false);
+    }
+  };
+
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isAuthenticated) {
@@ -248,8 +272,11 @@ export default function ProductDetailPage() {
       });
       setReviewSuccess(true);
       setReviewMessage('');
-      // refresh reviews
-      const updated = await reviewsService.getProductReviews(product.id);
+      // refresh reviews with current sorting option
+      const updated = await reviewsService.getProductReviews(product.id, {
+        sortingOption: reviewSort,
+        pageSize: 10,
+      });
       setReviewsData(updated);
     } catch (err: unknown) {
       // Golden Rule #8 (Duplicate Review 409 Conflict)
@@ -267,6 +294,13 @@ export default function ProductDetailPage() {
   };
 
   const isFavorited = wishlistIds.includes(product.id);
+
+  // Safely extract reviews list whether backend returns array or PaginatedList (No hook to satisfy Rules of Hooks)
+  const reviewsList: Review[] = Array.isArray(reviewsData?.reviews)
+    ? reviewsData.reviews
+    : Array.isArray((reviewsData?.reviews as any)?.data)
+    ? (reviewsData?.reviews as any).data
+    : [];
 
   // SEO Schema for this Product (JSON-LD Rich Snippet)
   const productJsonLd = {
@@ -352,6 +386,29 @@ export default function ProductDetailPage() {
                   }`}
                 />
               </button>
+
+              {/* Prev / Next Chevrons on Main Image */}
+              {images.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedImageIdx((prev) => (prev - 1 + images.length) % images.length)}
+                    aria-label="Previous Image"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/60 hover:bg-[var(--accent-gold)] hover:text-black text-white/90 backdrop-blur-md border border-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 shadow-lg cursor-pointer"
+                  >
+                    <ChevronLeft className="w-5 h-5 rtl:rotate-180" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedImageIdx((prev) => (prev + 1) % images.length)}
+                    aria-label="Next Image"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/60 hover:bg-[var(--accent-gold)] hover:text-black text-white/90 backdrop-blur-md border border-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 shadow-lg cursor-pointer"
+                  >
+                    <ChevronRight className="w-5 h-5 rtl:rotate-180" />
+                  </button>
+                </>
+              )}
             </div>
 
             {/* Thumbnail Row */}
@@ -680,13 +737,57 @@ export default function ProductDetailPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Reviews List */}
             <div className="lg:col-span-7 space-y-4">
-              {reviewsData?.reviews && reviewsData.reviews.length > 0 ? (
-                reviewsData.reviews.map((rev) => (
+              {/* Sorting Bar */}
+              <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+                <span className="text-xs font-medium text-[var(--text-secondary)]">
+                  {language === 'ar' ? 'ترتيب المراجعات:' : 'Sort Reviews:'}
+                </span>
+
+                <div className="relative inline-flex items-center">
+                  <select
+                    value={reviewSort}
+                    onChange={(e) => handleReviewSortChange(Number(e.target.value) as ReviewSortOptions)}
+                    className="bg-[var(--bg-secondary)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-[var(--accent-gold)] transition-colors cursor-pointer appearance-none pe-8 rtl:ps-3 rtl:pe-8"
+                  >
+                    <option value={ReviewSortOptions.DateDesc}>
+                      {language === 'ar' ? 'الأحدث أولاً' : 'Newest First'}
+                    </option>
+                    <option value={ReviewSortOptions.RatingDesc}>
+                      {language === 'ar' ? 'الأعلى تقييماً' : 'Highest Rating'}
+                    </option>
+                    <option value={ReviewSortOptions.RatingAsc}>
+                      {language === 'ar' ? 'الأقل تقييماً' : 'Lowest Rating'}
+                    </option>
+                    <option value={ReviewSortOptions.DateAsc}>
+                      {language === 'ar' ? 'الأقدم أولاً' : 'Oldest First'}
+                    </option>
+                  </select>
+                  <ChevronDown className="w-3.5 h-3.5 text-[var(--accent-gold)] absolute end-2.5 pointer-events-none" />
+                </div>
+              </div>
+
+              {isSortingReviews ? (
+                <div className="p-8 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-center text-xs text-[var(--text-secondary)] animate-pulse">
+                  {language === 'ar' ? 'جارٍ فرز التقييمات...' : 'Sorting reviews...'}
+                </div>
+              ) : reviewsList.length > 0 ? (
+                reviewsList.map((rev) => (
                   <SpotlightCard key={rev.id} className="p-6 space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="font-semibold text-xs text-[var(--text-primary)]">
-                        {rev.customerName || rev.displayName || (language === 'ar' ? 'عميلة موثقة' : 'Verified Client')}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-xs text-[var(--text-primary)]">
+                          {rev.customerName || rev.displayName || (language === 'ar' ? 'عميلة موثقة' : 'Verified Client')}
+                        </span>
+                        {rev.createdAt && (
+                          <span className="text-[10px] text-[var(--text-secondary)] font-light">
+                            {new Date(rev.createdAt).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                            })}
+                          </span>
+                        )}
+                      </div>
                       <div className="flex text-[var(--accent-gold)]">
                         {[1, 2, 3, 4, 5].map((s) => (
                           <Star

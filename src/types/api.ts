@@ -1,6 +1,24 @@
 // ==========================================
-// 👑 L'ÉLÉGANCE ABAYA ATELIER - API TYPES
+// 👑 L'ÉLÉGANCE ABAYA ATELIER - API TYPES & BACKEND CONTRACTS
 // ==========================================
+
+export enum ProductSortOptions {
+  NameAsc = 1,
+  NameDesc = 2,
+  PriceAsc = 3,
+  PriceDesc = 4,
+}
+
+export enum ReviewSortOptions {
+  DateAsc = 1,
+  DateDesc = 2,
+  RatingAsc = 3,
+  RatingDesc = 4,
+}
+
+export type OrderStatus = 'Pending' | 'Approved' | 'Cancelled' | 'PaymentReceived' | 'Processing' | 'Shipped' | 'Delivered' | string;
+export type PaymentMethod = 'CashOnDelivery' | 'Card' | 'VodafoneCash' | 'InstaPay' | string;
+export type UserRole = 'user' | 'admin' | 'Admin' | string;
 
 export interface PaginatedList<T> {
   pageIndex: number;
@@ -138,7 +156,8 @@ export interface ReviewsResponse {
   productId: number;
   averageRating: number;
   totalReviews: number;
-  reviews: Review[];
+  createdAt?: string;
+  reviews: Review[] | PaginatedList<Review>;
 }
 
 export interface UserProfile {
@@ -159,11 +178,13 @@ export interface AuthResponse {
 export interface ProductFilterParams {
   pageIndex?: number;
   pageSize?: number;
-  categoryId?: number;
-  search?: string;
-  color?: string;
-  size?: string;
-  sortingOption?: number; // 1=NameAsc, 2=NameDesc, 3=PriceAsc, 4=PriceDesc
+  categoryId?: number | null;
+  search?: string | null;
+  color?: string | null;
+  size?: string | null;
+  minPrice?: number | null;
+  maxPrice?: number | null;
+  sortingOption?: ProductSortOptions | number; // 1=NameAsc, 2=NameDesc, 3=PriceAsc, 4=PriceDesc
 }
 
 export type CurrencyCode = 'EGP' | 'SAR' | 'AED' | 'USD' | 'KWD';
@@ -362,5 +383,89 @@ export interface UpdateSiteSettingsPayload {
   heroCardTitle?: string | null;
 }
 
+// ==========================================
+// 🎯 BACKEND INTEGRATION CONTRACT ALIASES & TYPES
+// ==========================================
+export interface ApiErrorResponse {
+  statusCode: number;
+  message: string;
+  errors?: string[];
+}
 
+export type ProductSizeStockResponseDto = SizeStock;
+export type ProductColorGroupResponseDto = ColorGroup;
+export type ProductVariantDto = ProductVariant;
+export type CategoryDto = Category;
+export type CartItemDto = CartItem;
+export type CartDto = Cart;
+export type OrderItemDto = OrderItem;
+export type OrderDto = Order;
+export type ReviewDto = Review;
+export type ProductReviewsSummaryDto = ReviewsResponse;
+export type DeliveryMethodDto = DeliveryMethod;
+export type DashboardSummaryDto = DashboardSummaryResponse;
+export type RevenueOverviewDto = RevenueOverview;
+export type OrdersOverviewDto = OrdersOverview;
+export type CustomersOverviewDto = CustomersOverview;
+export type CatalogOverviewDto = CatalogOverview;
+export type TopSellingProductDto = TopSellingProduct;
+export type LowStockItemDto = LowStockItem;
+export type RecentOrderDto = RecentOrder;
+export type SalesChartPointDto = SalesChartPoint;
+export type UserDTO = CustomerDto;
+
+export type LoginCommand = { email: string; password: string };
+export type RegisterCommand = { displayName: string; email: string; password: string; phoneNumber?: string | null };
+export type UserDto = AuthResponse;
+export type UserProfileDto = UserProfile;
+export type UpdateProfileRequest = { displayName: string; phoneNumber?: string | null };
+export type ChangePasswordRequest = { currentPassword: string; newPassword: string };
+export type DeleteAccountRequest = { password: string };
+
+export type GetAllProductsQueryParameters = ProductFilterParams;
+export type ProductSizeStockDto = { size: string; stockQuantity: number };
+export type ProductColorGroupDto = { color: string; sizes: ProductSizeStockDto[]; imageUrls?: string[] | null };
+export type CreateProductCommand = CreateProductPayload;
+export type UpdateProductCommand = UpdateProductPayload;
+
+export type CreateCategoryCommand = { name: string };
+export type UpdateCategoryCommand = { id: number; name: string };
+
+export type AddItemToCartCommand = { productVariantId: number; quantity: number };
+
+export interface FavoriteDto {
+  productId: number;
+  productName: string;
+  productDescription: string;
+  productPrice: number;
+  categoryId: number;
+  categoryName: string;
+  pictureUrl?: string | null;
+}
+
+export type CreateOrderItemRequest = { productVariantId: number; quantity: number };
+export type CreateOrderCommand = CreateOrderPayload;
+export type CancelOrderRequest = { reason?: string | null };
+export type OrderQueryParameters = { pageIndex?: number; pageSize?: number };
+
+export type CreateReviewRequest = { productId: number; stars: number; message: string };
+export type UpdateReviewRequest = { stars: number; message: string };
+export type GetReviewesQueryParameter = { pageIndex?: number; pageSize?: number; sortingOption?: ReviewSortOptions };
+
+export type CreateDeliveryMethodCommand = CreateDeliveryMethodPayload;
+export type UpdateDeliveryMethodCommand = UpdateDeliveryMethodPayload;
+
+export type GetAllCustomerQueryPatameter = { pageIndex?: number; pageSize?: number; search?: string | null };
+
+export interface CloudinarySignatureResult {
+  signature: string;
+  timestamp: number;
+  apiKey: string;
+  cloudName: string;
+  folder: string;
+  publicId: string;
+  uploadUrl: string;
+}
+
+export type UpdateSiteSettingsCommand = UpdateSiteSettingsPayload;
 

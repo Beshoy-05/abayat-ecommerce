@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { X, Check, ShoppingBag, Eye, ArrowRight, ShieldCheck } from 'lucide-react';
+import { X, Check, ShoppingBag, Eye, ArrowRight, ShieldCheck, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Product, ColorGroup, SizeStock } from '@/types/api';
 import { useCartStore } from '@/store/useCartStore';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -29,25 +29,34 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
   const [isAdding, setIsAdding] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
 
-  if (!product) return null;
-
-  const colorGroups: ColorGroup[] = product.colorGroups || [];
-  const hasDiscount = Boolean(product.discount && product.discount > 0);
-  const finalPrice = product.finalPrice ?? (hasDiscount ? Number((product.price * (1 - (product.discount || 0) / 100)).toFixed(2)) : product.price);
+  const colorGroups: ColorGroup[] = product?.colorGroups || [];
+  const hasDiscount = Boolean(product?.discount && product.discount > 0);
+  const finalPrice = product?.finalPrice ?? (hasDiscount ? Number(((product?.price || 0) * (1 - (product?.discount || 0) / 100)).toFixed(2)) : (product?.price || 0));
   const defaultFallbackImage =
-    product.pictureUrl ||
-    product.images?.[0] ||
+    product?.pictureUrl ||
+    product?.images?.[0] ||
     'https://res.cloudinary.com/moak0zto/image/upload/v1792652133/abaya-ecommerce/abaya-ecommerce/1000646012_20261022065532_152bcfffeb5747e889d6560f74eb66ea.jpg';
 
   const currentColorGroup = colorGroups[selectedColorIndex] || {
     color: 'Default',
-    images: product.images?.length > 0 ? product.images : [defaultFallbackImage],
-    sizes: product.variants?.map((v) => ({ variantId: v.id, size: v.size, stockQuantity: v.stockQuantity })) || [],
+    images: (product?.images && product.images.length > 0) ? product.images : [defaultFallbackImage],
+    sizes: product?.variants?.map((v) => ({ variantId: v.id, size: v.size, stockQuantity: v.stockQuantity })) || [],
   };
 
-  const images = currentColorGroup.images?.length > 0 ? currentColorGroup.images : [defaultFallbackImage];
+  const images = (currentColorGroup.images && currentColorGroup.images.length > 0) ? currentColorGroup.images : [defaultFallbackImage];
   const activeImage = images[activeImageIndex] || defaultFallbackImage;
   const currentSizes = currentColorGroup.sizes || [];
+
+  // Auto-flip in quick view modal
+  useEffect(() => {
+    if (!isOpen || images.length <= 1) return;
+    const timer = setInterval(() => {
+      setActiveImageIndex((prev) => (prev + 1) % images.length);
+    }, 2000);
+    return () => clearInterval(timer);
+  }, [isOpen, images.length]);
+
+  if (!product) return null;
 
   const handleSelectColor = (index: number) => {
     setSelectedColorIndex(index);
@@ -114,17 +123,39 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
 
             {/* Left Column: Image Gallery */}
             <div className="p-6 bg-[var(--bg-secondary)] flex flex-col justify-between">
-              <div className="aspect-[3/4] relative rounded-xl overflow-hidden bg-[var(--bg-primary)]" style={{ position: 'relative' }}>
+              <div className="aspect-[3/4] relative rounded-xl overflow-hidden bg-[var(--bg-primary)] group/modal-img" style={{ position: 'relative' }}>
                 <Image
                   src={activeImage || 'https://res.cloudinary.com/moak0zto/image/upload/v1792652133/abaya-ecommerce/abaya-ecommerce/1000646012_20261022065532_152bcfffeb5747e889d6560f74eb66ea.jpg'}
                   alt={product.name}
                   fill
-                  className="object-cover"
+                  className="object-cover transition-all duration-500"
                 />
                 {hasDiscount && (
                   <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider bg-rose-600 text-white shadow-md z-10">
                     {language === 'ar' ? `خصم ${product.discount}%` : `-${product.discount}%`}
                   </span>
+                )}
+
+                {images.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setActiveImageIndex((prev) => (prev - 1 + images.length) % images.length)}
+                      aria-label="Previous Image"
+                      className="absolute left-2.5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/60 hover:bg-[var(--accent-gold)] hover:text-black text-white/90 backdrop-blur-md border border-white/10 flex items-center justify-center opacity-0 group-hover/modal-img:opacity-100 transition-all duration-300 hover:scale-110 shadow-lg cursor-pointer"
+                    >
+                      <ChevronLeft className="w-4 h-4 rtl:rotate-180" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setActiveImageIndex((prev) => (prev + 1) % images.length)}
+                      aria-label="Next Image"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/60 hover:bg-[var(--accent-gold)] hover:text-black text-white/90 backdrop-blur-md border border-white/10 flex items-center justify-center opacity-0 group-hover/modal-img:opacity-100 transition-all duration-300 hover:scale-110 shadow-lg cursor-pointer"
+                    >
+                      <ChevronRight className="w-4 h-4 rtl:rotate-180" />
+                    </button>
+                  </>
                 )}
               </div>
 

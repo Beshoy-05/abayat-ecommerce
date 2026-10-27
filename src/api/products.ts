@@ -12,6 +12,8 @@ export const productsService = {
     if (params?.search && params.search.trim()) cleanParams.search = params.search.trim();
     if (params?.color && params.color.trim()) cleanParams.color = params.color.trim();
     if (params?.size && params.size.trim()) cleanParams.size = params.size.trim();
+    if (params?.minPrice !== undefined && params?.minPrice !== null) cleanParams.minPrice = params.minPrice;
+    if (params?.maxPrice !== undefined && params?.maxPrice !== null) cleanParams.maxPrice = params.maxPrice;
     if (params?.sortingOption) cleanParams.sortingOption = params.sortingOption;
 
     const res = await apiClient.get<PaginatedList<Product>>('/api/Products', {
