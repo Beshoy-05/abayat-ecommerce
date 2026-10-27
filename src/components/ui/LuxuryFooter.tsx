@@ -16,6 +16,7 @@ import {
   Globe,
   Share2,
 } from 'lucide-react';
+import SocialMediaLinks from '@/components/ui/SocialIcons';
 
 export default function LuxuryFooter() {
   const { language } = useThemeStore();
@@ -127,65 +128,7 @@ export default function LuxuryFooter() {
             </div>
 
             {/* Social Links Row */}
-            {(settings.instagramUrl || settings.tiktokUrl || settings.facebookUrl || settings.twitterUrl || settings.snapchatUrl) && (
-              <div className="flex items-center gap-3 pt-5">
-                {settings.instagramUrl && (
-                  <a
-                    href={settings.instagramUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-subtle)] flex items-center justify-center text-xs text-[var(--text-secondary)] hover:text-[var(--accent-gold)] hover:border-[var(--accent-gold)] transition-colors"
-                    title="Instagram"
-                  >
-                    IG
-                  </a>
-                )}
-                {settings.tiktokUrl && (
-                  <a
-                    href={settings.tiktokUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-subtle)] flex items-center justify-center text-xs text-[var(--text-secondary)] hover:text-[var(--accent-gold)] hover:border-[var(--accent-gold)] transition-colors"
-                    title="TikTok"
-                  >
-                    TT
-                  </a>
-                )}
-                {settings.facebookUrl && (
-                  <a
-                    href={settings.facebookUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-subtle)] flex items-center justify-center text-xs text-[var(--text-secondary)] hover:text-[var(--accent-gold)] hover:border-[var(--accent-gold)] transition-colors"
-                    title="Facebook"
-                  >
-                    FB
-                  </a>
-                )}
-                {settings.twitterUrl && (
-                  <a
-                    href={settings.twitterUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-subtle)] flex items-center justify-center text-xs text-[var(--text-secondary)] hover:text-[var(--accent-gold)] hover:border-[var(--accent-gold)] transition-colors"
-                    title="Twitter / X"
-                  >
-                    X
-                  </a>
-                )}
-                {settings.snapchatUrl && (
-                  <a
-                    href={settings.snapchatUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-subtle)] flex items-center justify-center text-xs text-[var(--text-secondary)] hover:text-[var(--accent-gold)] hover:border-[var(--accent-gold)] transition-colors"
-                    title="Snapchat"
-                  >
-                    SC
-                  </a>
-                )}
-              </div>
-            )}
+            <SocialMediaLinks includeWhatsApp={true} />
           </div>
 
           {/* Quick Links */}

@@ -29,6 +29,13 @@ import { useSiteSettingsStore } from '@/store/useSiteSettingsStore';
 import { SiteSettingDto, UpdateSiteSettingsPayload } from '@/types/api';
 import { useThemeStore } from '@/store/useThemeStore';
 import { motion, AnimatePresence } from 'framer-motion';
+import {
+  InstagramIcon,
+  TikTokIcon,
+  FacebookIcon,
+  TwitterXIcon,
+  SnapchatIcon,
+} from '@/components/ui/SocialIcons';
 
 interface AdminSiteSettingsProps {
   showToast: (type: 'success' | 'error', text: string) => void;
@@ -746,8 +753,11 @@ export default function AdminSiteSettings({ showToast }: AdminSiteSettingsProps)
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {/* Instagram */}
               <div className="space-y-2">
-                <label className="block text-xs uppercase tracking-wider text-[var(--text-secondary)] font-semibold">
-                  Instagram URL
+                <label className="flex items-center gap-2 text-xs uppercase tracking-wider text-[var(--text-secondary)] font-semibold">
+                  <span className="p-1 rounded-md bg-pink-500/10 text-pink-500">
+                    <InstagramIcon className="w-3.5 h-3.5" />
+                  </span>
+                  <span>Instagram URL</span>
                 </label>
                 <input
                   type="url"
@@ -761,8 +771,11 @@ export default function AdminSiteSettings({ showToast }: AdminSiteSettingsProps)
 
               {/* TikTok */}
               <div className="space-y-2">
-                <label className="block text-xs uppercase tracking-wider text-[var(--text-secondary)] font-semibold">
-                  TikTok URL
+                <label className="flex items-center gap-2 text-xs uppercase tracking-wider text-[var(--text-secondary)] font-semibold">
+                  <span className="p-1 rounded-md bg-cyan-500/10 text-cyan-400">
+                    <TikTokIcon className="w-3.5 h-3.5" />
+                  </span>
+                  <span>TikTok URL</span>
                 </label>
                 <input
                   type="url"
@@ -776,8 +789,11 @@ export default function AdminSiteSettings({ showToast }: AdminSiteSettingsProps)
 
               {/* Facebook */}
               <div className="space-y-2">
-                <label className="block text-xs uppercase tracking-wider text-[var(--text-secondary)] font-semibold">
-                  Facebook URL
+                <label className="flex items-center gap-2 text-xs uppercase tracking-wider text-[var(--text-secondary)] font-semibold">
+                  <span className="p-1 rounded-md bg-blue-500/10 text-blue-500">
+                    <FacebookIcon className="w-3.5 h-3.5" />
+                  </span>
+                  <span>Facebook URL</span>
                 </label>
                 <input
                   type="url"
@@ -791,8 +807,11 @@ export default function AdminSiteSettings({ showToast }: AdminSiteSettingsProps)
 
               {/* Twitter / X */}
               <div className="space-y-2">
-                <label className="block text-xs uppercase tracking-wider text-[var(--text-secondary)] font-semibold">
-                  Twitter / X URL
+                <label className="flex items-center gap-2 text-xs uppercase tracking-wider text-[var(--text-secondary)] font-semibold">
+                  <span className="p-1 rounded-md bg-zinc-500/10 text-[var(--text-primary)]">
+                    <TwitterXIcon className="w-3.5 h-3.5" />
+                  </span>
+                  <span>Twitter / X URL</span>
                 </label>
                 <input
                   type="url"
@@ -806,8 +825,11 @@ export default function AdminSiteSettings({ showToast }: AdminSiteSettingsProps)
 
               {/* Snapchat */}
               <div className="space-y-2">
-                <label className="block text-xs uppercase tracking-wider text-[var(--text-secondary)] font-semibold">
-                  Snapchat URL
+                <label className="flex items-center gap-2 text-xs uppercase tracking-wider text-[var(--text-secondary)] font-semibold">
+                  <span className="p-1 rounded-md bg-yellow-500/10 text-yellow-500">
+                    <SnapchatIcon className="w-3.5 h-3.5" />
+                  </span>
+                  <span>Snapchat URL</span>
                 </label>
                 <input
                   type="url"

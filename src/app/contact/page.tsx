@@ -10,7 +10,9 @@ import {
   ArrowRight,
   Check,
   ChevronDown,
+  Share2,
 } from 'lucide-react';
+import SocialMediaLinks from '@/components/ui/SocialIcons';
 import { useThemeStore } from '@/store/useThemeStore';
 import { useSiteSettingsStore } from '@/store/useSiteSettingsStore';
 import ShimmerBadge from '@/components/ui/ShimmerBadge';
@@ -140,6 +142,20 @@ export default function ContactPage() {
                 </span>
               </div>
             </div>
+          </div>
+
+          {/* Official Social Media Channels */}
+          <div className="p-8 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-4 shadow-sm text-xs text-[var(--text-secondary)]">
+            <h4 className="font-serif text-base font-semibold text-[var(--text-primary)] flex items-center gap-2">
+              <Share2 className="w-4 h-4 text-[var(--accent-gold)]" />
+              <span>{language === 'ar' ? 'منصات التواصل الاجتماعي' : 'Official Social Channels'}</span>
+            </h4>
+            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+              {language === 'ar'
+                ? 'تابعوا إطلاقات المجموعات الملكية والتصاميم الحصرية عبر صفحاتنا الرسمية.'
+                : 'Follow our haute couture releases, previews, and styling edits across our social media.'}
+            </p>
+            <SocialMediaLinks className="flex items-center gap-3 pt-2" includeWhatsApp={false} />
           </div>
         </div>
 

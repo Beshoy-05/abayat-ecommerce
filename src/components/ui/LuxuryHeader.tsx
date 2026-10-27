@@ -24,6 +24,7 @@ import { useSiteSettingsStore } from '@/store/useSiteSettingsStore';
 import { translations } from '@/utils/translations';
 import { CurrencyCode } from '@/types/api';
 import { motion, AnimatePresence } from 'framer-motion';
+import SocialMediaLinks from '@/components/ui/SocialIcons';
 
 export default function LuxuryHeader() {
   const pathname = usePathname();
@@ -443,6 +444,10 @@ export default function LuxuryHeader() {
                       </option>
                     ))}
                   </select>
+                </div>
+
+                <div className="pt-2 border-t border-[var(--border-subtle)] flex items-center justify-center">
+                  <SocialMediaLinks className="flex items-center justify-center gap-3 pt-2" includeWhatsApp={true} />
                 </div>
               </div>
             </motion.div>
