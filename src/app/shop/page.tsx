@@ -15,7 +15,7 @@ import {
 import { productsService } from '@/api/products';
 import { categoriesService } from '@/api/categories';
 import { Product, Category, ProductFilterParams } from '@/types/api';
-import { useThemeStore } from '@/store/useThemeStore';
+import { useThemeStore, CURRENCY_RATES } from '@/store/useThemeStore';
 import { translations } from '@/utils/translations';
 import { trackViewItemList } from '@/utils/analytics';
 import ProductCard from '@/components/ui/ProductCard';
@@ -49,10 +49,19 @@ const BASE_PRESET_COLORS = [
   { nameEn: 'Pearl Grey', nameAr: 'رمادي لؤلؤي', query: 'رمادي لؤلؤي' },
 ];
 
+const BASE_PRICE_PRESETS = [
+  { labelAr: 'أقل من 1,500', labelEn: 'Under 1,500', min: undefined, max: 1500 },
+  { labelAr: '1,500 - 3,000', labelEn: '1,500 - 3,000', min: 1500, max: 3000 },
+  { labelAr: '3,000 - 5,000', labelEn: '3,000 - 5,000', min: 3000, max: 5000 },
+  { labelAr: 'أكثر من 5,000', labelEn: 'Above 5,000', min: 5000, max: undefined },
+];
+
 function ShopContent() {
   const searchParams = useSearchParams();
-  const { language } = useThemeStore();
+  const { language, currency } = useThemeStore();
   const t = translations[language];
+  const config = CURRENCY_RATES[currency] || CURRENCY_RATES.EGP;
+  const currencySymbol = language === 'ar' ? config.symbolAr : config.symbolEn;
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -77,16 +86,76 @@ function ShopContent() {
   const [searchQuery, setSearchQuery] = useState<string>(
     searchParams.get('search') || ''
   );
+  const [minPrice, setMinPrice] = useState<number | undefined>(() => {
+    const p = searchParams.get('minPrice');
+    return p && !isNaN(Number(p)) ? Number(p) : undefined;
+  });
+  const [maxPrice, setMaxPrice] = useState<number | undefined>(() => {
+    const p = searchParams.get('maxPrice');
+    return p && !isNaN(Number(p)) ? Number(p) : undefined;
+  });
+  const [tempMinPrice, setTempMinPrice] = useState<string>(
+    minPrice !== undefined ? String(minPrice) : ''
+  );
+  const [tempMaxPrice, setTempMaxPrice] = useState<string>(
+    maxPrice !== undefined ? String(maxPrice) : ''
+  );
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [gridCols, setGridCols] = useState<3 | 4>(3);
 
-  // Sync selectedColor if URL searchParams change
+  // Sync selectedColor & price if URL searchParams change
   useEffect(() => {
     const paramColor = searchParams.get('color');
     if (paramColor !== null) {
       setSelectedColor(normalizeColorParam(paramColor));
     }
+    const pMin = searchParams.get('minPrice');
+    const pMax = searchParams.get('maxPrice');
+    const parsedMin = pMin && !isNaN(Number(pMin)) ? Number(pMin) : undefined;
+    const parsedMax = pMax && !isNaN(Number(pMax)) ? Number(pMax) : undefined;
+    setMinPrice(parsedMin);
+    setMaxPrice(parsedMax);
+    setTempMinPrice(parsedMin !== undefined ? String(parsedMin) : '');
+    setTempMaxPrice(parsedMax !== undefined ? String(parsedMax) : '');
   }, [searchParams]);
+
+  const handleSelectPreset = (min?: number, max?: number) => {
+    if (minPrice === min && maxPrice === max) {
+      setMinPrice(undefined);
+      setMaxPrice(undefined);
+      setTempMinPrice('');
+      setTempMaxPrice('');
+    } else {
+      setMinPrice(min);
+      setMaxPrice(max);
+      setTempMinPrice(min !== undefined ? String(min) : '');
+      setTempMaxPrice(max !== undefined ? String(max) : '');
+    }
+    setPageIndex(1);
+  };
+
+  const handleApplyCustomPrice = () => {
+    const parsedMin =
+      tempMinPrice.trim() !== '' && !isNaN(Number(tempMinPrice))
+        ? Math.max(0, Number(tempMinPrice))
+        : undefined;
+    const parsedMax =
+      tempMaxPrice.trim() !== '' && !isNaN(Number(tempMaxPrice))
+        ? Math.max(0, Number(tempMaxPrice))
+        : undefined;
+
+    setMinPrice(parsedMin);
+    setMaxPrice(parsedMax);
+    setPageIndex(1);
+  };
+
+  const handleClearPrice = () => {
+    setMinPrice(undefined);
+    setMaxPrice(undefined);
+    setTempMinPrice('');
+    setTempMaxPrice('');
+    setPageIndex(1);
+  };
 
   // Combine preset colors with any unique colors present in loaded products
   const availableColors = React.useMemo(() => {
@@ -136,6 +205,8 @@ function ShopContent() {
           categoryId: selectedCategory,
           color: selectedColor || undefined,
           size: selectedSize || undefined,
+          minPrice: minPrice !== undefined ? minPrice : undefined,
+          maxPrice: maxPrice !== undefined ? maxPrice : undefined,
           sortingOption: sortingOption || undefined,
           search: searchQuery || undefined,
         };
@@ -163,7 +234,16 @@ function ShopContent() {
     };
 
     fetchCatalog();
-  }, [pageIndex, selectedCategory, selectedColor, selectedSize, sortingOption, searchQuery]);
+  }, [
+    pageIndex,
+    selectedCategory,
+    selectedColor,
+    selectedSize,
+    sortingOption,
+    searchQuery,
+    minPrice,
+    maxPrice,
+  ]);
 
   const resetAllFilters = () => {
     setSelectedCategory(undefined);
@@ -171,11 +251,21 @@ function ShopContent() {
     setSelectedSize('');
     setSortingOption(0);
     setSearchQuery('');
+    setMinPrice(undefined);
+    setMaxPrice(undefined);
+    setTempMinPrice('');
+    setTempMaxPrice('');
     setPageIndex(1);
   };
 
   const hasActiveFilters = Boolean(
-    selectedCategory || selectedColor || selectedSize || sortingOption || searchQuery
+    selectedCategory ||
+      selectedColor ||
+      selectedSize ||
+      sortingOption ||
+      searchQuery ||
+      minPrice !== undefined ||
+      maxPrice !== undefined
   );
 
   return (
@@ -300,6 +390,16 @@ function ShopContent() {
               </button>
             </span>
           )}
+          {(minPrice !== undefined || maxPrice !== undefined) && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--accent-gold)]/10 border border-[var(--accent-gold)]/30 text-[var(--accent-gold)]">
+              {language === 'ar'
+                ? `السعر: ${minPrice !== undefined ? `من ${minPrice}` : ''} ${maxPrice !== undefined ? `إلى ${maxPrice}` : ''} ${currencySymbol}`
+                : `Price: ${minPrice !== undefined ? `From ${minPrice}` : ''} ${maxPrice !== undefined ? `To ${maxPrice}` : ''} ${currencySymbol}`}
+              <button onClick={handleClearPrice}>
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          )}
           <button
             onClick={resetAllFilters}
             className="text-xs text-[var(--text-secondary)] hover:text-rose-400 underline ml-2"
@@ -407,6 +507,82 @@ function ShopContent() {
                   {sz}
                 </button>
               ))}
+            </div>
+          </div>
+
+          {/* Price Range Filter */}
+          <div className="pt-4 border-t border-[var(--border-subtle)] space-y-3">
+            <div className="flex justify-between items-center">
+              <h4 className="text-xs uppercase tracking-wider font-semibold text-[var(--text-secondary)]">
+                {t.catalog.priceFilter}
+              </h4>
+              {(minPrice !== undefined || maxPrice !== undefined) && (
+                <button
+                  onClick={handleClearPrice}
+                  className="text-[11px] text-[var(--accent-gold)] hover:underline"
+                >
+                  {language === 'ar' ? 'إلغاء' : 'Clear'}
+                </button>
+              )}
+            </div>
+
+            {/* Presets */}
+            <div className="space-y-1.5">
+              {BASE_PRICE_PRESETS.map((preset, idx) => {
+                const isSelected = minPrice === preset.min && maxPrice === preset.max;
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => handleSelectPreset(preset.min, preset.max)}
+                    className={`w-full text-left px-3 py-1.5 rounded-lg text-xs transition-colors flex items-center justify-between ${
+                      isSelected
+                        ? 'bg-[var(--accent-gold)]/10 text-[var(--accent-gold)] font-bold'
+                        : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                    }`}
+                  >
+                    <span>
+                      {language === 'ar' ? preset.labelAr : preset.labelEn}{' '}
+                      <span className="text-[10px] opacity-70">({currencySymbol})</span>
+                    </span>
+                    {isSelected && <span className="text-[var(--accent-gold)]">✓</span>}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Custom Inputs */}
+            <div className="pt-1">
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="number"
+                  min="0"
+                  placeholder={t.catalog.minPrice}
+                  value={tempMinPrice}
+                  onChange={(e) => setTempMinPrice(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleApplyCustomPrice();
+                  }}
+                  className="w-full min-w-0 bg-[var(--bg-secondary)] border border-[var(--border-subtle)] focus:border-[var(--accent-gold)] rounded-lg px-2 py-1.5 text-xs text-[var(--text-primary)] placeholder-[var(--text-secondary)]/60 focus:outline-none transition-colors"
+                />
+                <span className="text-xs text-[var(--text-secondary)]">-</span>
+                <input
+                  type="number"
+                  min="0"
+                  placeholder={t.catalog.maxPrice}
+                  value={tempMaxPrice}
+                  onChange={(e) => setTempMaxPrice(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleApplyCustomPrice();
+                  }}
+                  className="w-full min-w-0 bg-[var(--bg-secondary)] border border-[var(--border-subtle)] focus:border-[var(--accent-gold)] rounded-lg px-2 py-1.5 text-xs text-[var(--text-primary)] placeholder-[var(--text-secondary)]/60 focus:outline-none transition-colors"
+                />
+                <button
+                  onClick={handleApplyCustomPrice}
+                  className="px-2.5 py-1.5 rounded-lg bg-[var(--accent-gold)] text-black text-xs font-bold hover:bg-[var(--accent-bronze)] hover:text-white transition-colors shrink-0"
+                >
+                  {t.catalog.applyPrice}
+                </button>
+              </div>
             </div>
           </div>
         </aside>
@@ -576,6 +752,82 @@ function ShopContent() {
                     {sz}
                   </button>
                 ))}
+              </div>
+            </div>
+
+            {/* Price Range Filter (Mobile) */}
+            <div className="pt-4 border-t border-[var(--border-subtle)] space-y-3">
+              <div className="flex justify-between items-center">
+                <h4 className="text-xs uppercase tracking-wider font-semibold text-[var(--text-secondary)]">
+                  {t.catalog.priceFilter}
+                </h4>
+                {(minPrice !== undefined || maxPrice !== undefined) && (
+                  <button
+                    onClick={handleClearPrice}
+                    className="text-[11px] text-[var(--accent-gold)] hover:underline"
+                  >
+                    {language === 'ar' ? 'إلغاء' : 'Clear'}
+                  </button>
+                )}
+              </div>
+
+              {/* Presets */}
+              <div className="space-y-1.5">
+                {BASE_PRICE_PRESETS.map((preset, idx) => {
+                  const isSelected = minPrice === preset.min && maxPrice === preset.max;
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => handleSelectPreset(preset.min, preset.max)}
+                      className={`w-full text-left px-3 py-1.5 rounded-lg text-xs transition-colors flex items-center justify-between ${
+                        isSelected
+                          ? 'bg-[var(--accent-gold)]/10 text-[var(--accent-gold)] font-bold'
+                          : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                      }`}
+                    >
+                      <span>
+                        {language === 'ar' ? preset.labelAr : preset.labelEn}{' '}
+                        <span className="text-[10px] opacity-70">({currencySymbol})</span>
+                      </span>
+                      {isSelected && <span className="text-[var(--accent-gold)]">✓</span>}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Custom Inputs */}
+              <div className="pt-1">
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder={t.catalog.minPrice}
+                    value={tempMinPrice}
+                    onChange={(e) => setTempMinPrice(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleApplyCustomPrice();
+                    }}
+                    className="w-full min-w-0 bg-[var(--bg-secondary)] border border-[var(--border-subtle)] focus:border-[var(--accent-gold)] rounded-lg px-2 py-1.5 text-xs text-[var(--text-primary)] placeholder-[var(--text-secondary)]/60 focus:outline-none transition-colors"
+                  />
+                  <span className="text-xs text-[var(--text-secondary)]">-</span>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder={t.catalog.maxPrice}
+                    value={tempMaxPrice}
+                    onChange={(e) => setTempMaxPrice(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleApplyCustomPrice();
+                    }}
+                    className="w-full min-w-0 bg-[var(--bg-secondary)] border border-[var(--border-subtle)] focus:border-[var(--accent-gold)] rounded-lg px-2 py-1.5 text-xs text-[var(--text-primary)] placeholder-[var(--text-secondary)]/60 focus:outline-none transition-colors"
+                  />
+                  <button
+                    onClick={handleApplyCustomPrice}
+                    className="px-2.5 py-1.5 rounded-lg bg-[var(--accent-gold)] text-black text-xs font-bold hover:bg-[var(--accent-bronze)] hover:text-white transition-colors shrink-0"
+                  >
+                    {t.catalog.applyPrice}
+                  </button>
+                </div>
               </div>
             </div>
 

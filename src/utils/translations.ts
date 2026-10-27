@@ -1,8 +1,8 @@
 export const translations = {
   en: {
-    brandName: "L'ÉLÉGANCE",
-    brandSubtitle: "Haute Couture Abaya Atelier",
-    tagline: "The Zenith of Modern Egyptian & Oriental Elegance",
+    brandName: "Qasr Al-Abaya",
+    brandSubtitle: "Haute Couture Royal Silk Atelier",
+    tagline: "The Zenith of Royal Egyptian & Oriental Elegance",
     nav: {
       home: "Home",
       shop: "Collections",
@@ -54,6 +54,13 @@ export const translations = {
       noResults: "No couture pieces found matching your criteria",
       tryAgain: "Reset filters to view all available designs",
       searchPlaceholder: "Search by silk type, color, embroidery...",
+      priceFilter: "Price Range",
+      minPrice: "Min Price",
+      maxPrice: "Max Price",
+      priceFrom: "From",
+      priceTo: "To",
+      applyPrice: "Apply",
+      allPrices: "All Prices",
     },
     card: {
       quickView: "Quick View",
@@ -153,9 +160,9 @@ export const translations = {
     },
   },
   ar: {
-    brandName: "الأناقة",
-    brandSubtitle: "دار عبايات الهوت كوتور",
-    tagline: "قمة الفخامة والأناقة المصرية والشرقية المعاصرة",
+    brandName: "قصر العباية",
+    brandSubtitle: "دار عبايات الهوت كوتور والحرير الملكي",
+    tagline: "قمة الفخامة والأناقة الملكية المصرية والشرقية",
     nav: {
       home: "الرئيسية",
       shop: "المجموعات",
@@ -207,6 +214,13 @@ export const translations = {
       noResults: "لم نجد قطع مطابقة لخيارات البحث",
       tryAgain: "اضغطي على إعادة ضبط الفلاتر لمشاهدة جميع التصاميم",
       searchPlaceholder: "ابحثي عن نوع الحرير، اللون، أو التطريز...",
+      priceFilter: "نطاق السعر",
+      minPrice: "أدنى سعر",
+      maxPrice: "أقصى سعر",
+      priceFrom: "من",
+      priceTo: "إلى",
+      applyPrice: "تطبيق",
+      allPrices: "جميع الأسعار",
     },
     card: {
       quickView: "نظرة سريعة",

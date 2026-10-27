@@ -333,8 +333,8 @@ export default function HomePage() {
 
             <p className="text-sm text-[var(--text-secondary)] leading-relaxed font-light">
               {language === 'ar'
-                ? 'في دار الأناقة، تبدأ كل عباية كلوحة فنية نادرة. ننتقي أفخم أقمشة الكريب الياباني الفاخر والحرير الطبيعي الإيطالي، ثم ينسج أساتذة الحرفة خيوط الذهب المعدنية وتطريزات الدانتيل الفرنسي بدقة متناهية لتتألقي بأبهى إطلالة في كل مناسبة.'
-                : 'Every silhouette created in our atelier is a symphony of rare fabrics. We source the finest heavyweight Japanese crepes, woven with fluid drape and breathability, complemented by hand-guided metallic gold threading and authentic Chantilly lace.'}
+                ? 'في دار قصر العباية، تبدأ كل عباية كلوحة فنية نادرة. ننتقي أفخم أقمشة الكريب الياباني الفاخر والحرير الطبيعي الإيطالي، ثم ينسج أساتذة الحرفة خيوط الذهب المعدنية وتطريزات الدانتيل الفرنسي بدقة متناهية لتتألقي بأبهى إطلالة في كل مناسبة.'
+                : 'Every silhouette created in Qasr Al-Abaya atelier is a symphony of rare fabrics. We source the finest heavyweight Japanese crepes, woven with fluid drape and breathability, complemented by hand-guided metallic gold threading and authentic Chantilly lace.'}
             </p>
 
             <div className="space-y-3 pt-2">

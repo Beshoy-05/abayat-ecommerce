@@ -130,7 +130,7 @@ export default function LuxuryHeader() {
       className={`sticky top-0 z-50 w-full transition-all duration-300 ${
         isScrolled
           ? 'glass-nav shadow-lg py-3'
-          : 'bg-[var(--bg-primary)]/90 backdrop-blur-md py-4 border-b border-[var(--border-subtle)]'
+          : 'bg-[var(--bg-primary)] py-4 border-b border-[var(--border-subtle)]'
       }`}
     >
       {/* Top micro announcement bar */}

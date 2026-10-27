@@ -28,6 +28,8 @@ export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
 
+  const [dispatchedWhatsappUrl, setDispatchedWhatsappUrl] = useState('');
+
   const whatsappNumber = settings.whatsappNumber || process.env.NEXT_PUBLIC_CONCIERGE_WHATSAPP || '+201096212029';
   const whatsappUrl = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
     language === 'ar'
@@ -37,7 +39,28 @@ export default function ContactPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    const cleanPhone = whatsappNumber.replace(/[^0-9]/g, '');
+    const text =
+      language === 'ar'
+        ? `👑 *استفسار جديد من متجر قصر العباية*\n` +
+          `👤 *الاسم:* ${name}\n` +
+          `📧 *البريد:* ${email}\n` +
+          `📋 *الموضوع:* ${subject}\n` +
+          (message ? `💬 *تفاصيل الطلب:* ${message}\n` : '')
+        : `👑 *New Inquiry from Qasr Al-Abaya Store*\n` +
+          `👤 *Name:* ${name}\n` +
+          `📧 *Email:* ${email}\n` +
+          `📋 *Topic:* ${subject}\n` +
+          (message ? `💬 *Message:* ${message}\n` : '');
+
+    const targetUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
+    setDispatchedWhatsappUrl(targetUrl);
     setSubmitted(true);
+
+    if (typeof window !== 'undefined') {
+      window.open(targetUrl, '_blank');
+    }
   };
 
   const faqs = [
@@ -54,8 +77,8 @@ export default function ContactPage() {
       aAr: 'يتم شحن جميع الطلبات عبر نخبة من أسرع شركات الشحن السريع مع التوصيل لباب البيت خلال 24 إلى 48 ساعة كحد أقصى.',
     },
     {
-      qEn: 'What fabrics are used in L\'Élégance garments?',
-      qAr: 'ما هي أنواع الأقمشة المستخدمة في عبايات دار الأناقة؟',
+      qEn: 'What fabrics are used in Qasr Al-Abaya garments?',
+      qAr: 'ما هي أنواع الأقمشة المستخدمة في عبايات دار قصر العباية؟',
       aEn: 'We exclusively work with heavyweight Japanese raw crepes, pure Italian silks, organza, and authentic French Chantilly lace.',
       aAr: 'نستخدم حصرياً أرقى أنواع الكريب الياباني الملكي، الحرير الإيطالي الخالص، وخيوط القصب المذهبة مع الدانتيل الفرنسي.',
     },
@@ -68,7 +91,7 @@ export default function ContactPage() {
           {language === 'ar' ? 'تواصل معنا' : 'Contact Us'}
         </ShimmerBadge>
         <h1 className="font-serif text-3xl sm:text-5xl font-light text-[var(--text-primary)]">
-          {language === 'ar' ? 'تواصل مع دار الأناقة' : 'Connect with the Atelier'}
+          {language === 'ar' ? 'تواصل مع دار قصر العباية' : 'Connect with Qasr Al-Abaya'}
         </h1>
         <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-light leading-relaxed">
           {language === 'ar'
@@ -166,16 +189,42 @@ export default function ContactPage() {
           </h3>
 
           {submitted ? (
-            <div className="p-6 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 space-y-2 text-center">
-              <Check className="w-8 h-8 mx-auto" />
-              <h4 className="font-serif text-lg font-semibold">
-                {language === 'ar' ? 'تم استلام استفساركِ بنجاح' : 'Inquiry Received'}
+            <div className="p-8 rounded-2xl bg-[var(--bg-surface)] border border-emerald-500/30 text-center space-y-4 shadow-inner">
+              <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-400 mx-auto flex items-center justify-center">
+                <Check className="w-6 h-6" />
+              </div>
+              <h4 className="font-serif text-lg font-semibold text-[var(--text-primary)]">
+                {language === 'ar' ? 'تم استلام وتجهيز استفساركِ بنجاح' : 'Inquiry Dispatched Successfully'}
               </h4>
-              <p className="text-xs">
+              <p className="text-xs text-[var(--text-secondary)] max-w-md mx-auto leading-relaxed">
                 {language === 'ar'
-                  ? 'سيتواصل معكِ فريق خدمة العملاء خلال ساعتي عمل.'
-                  : 'Our customer care team will connect with you within 2 business hours.'}
+                  ? 'تم توجيه رسالتكِ تلقائياً إلى خدمة عملاء قصر العباية عبر واتساب (+201096212029). يمكنكِ أيضاً النقر على الزر أدناه لمتابعة المحادثة مباشرة.'
+                  : 'Your request has been routed to Qasr Al-Abaya WhatsApp Customer Support (+201096212029).'}
               </p>
+
+              <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+                {dispatchedWhatsappUrl && (
+                  <a
+                    href={dispatchedWhatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-[var(--accent-gold)] text-black font-bold text-xs uppercase tracking-wider hover:bg-[var(--accent-bronze)] hover:text-white transition-all flex items-center justify-center gap-2"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    <span>{language === 'ar' ? 'فتح المحادثة عبر واتساب' : 'Continue in WhatsApp'}</span>
+                  </a>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSubmitted(false);
+                    setMessage('');
+                  }}
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-full border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all"
+                >
+                  {language === 'ar' ? 'إرسال استفسار جديد' : 'Send Another'}
+                </button>
+              </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
