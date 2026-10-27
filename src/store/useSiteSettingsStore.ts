@@ -33,7 +33,7 @@ const DEFAULT_SETTINGS: SiteSettingDto = {
   storeName: 'قصر العباية',
   aboutUs:
     'أهلاً بكم في دار قصر العباية للهوت كوتور والعبايات الملكية الفاخرة. متجرنا متخصص في تقديم أرقى وأحدث تصاميم العبايات العصرية والتقليدية بأعلى جودة وخامات حراير يابانية وإيطالية نادرة.',
-  contactEmail: 'contact@abaya-luxury.com',
+  contactEmail: 'support@qasr-alabaya.vercel.app',
   contactPhone: '+201096212029',
   address: 'أبو كبير - محافظة الشرقية، جمهورية مصر العربية',
   whatsappNumber: '+201096212029',

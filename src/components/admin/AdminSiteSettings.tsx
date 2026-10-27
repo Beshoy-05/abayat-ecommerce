@@ -709,7 +709,7 @@ export default function AdminSiteSettings({ showToast }: AdminSiteSettingsProps)
                   maxLength={150}
                   value={contactEmail}
                   onChange={(e) => setContactEmail(e.target.value)}
-                  placeholder="contact@abaya-luxury.com"
+                  placeholder="support@qasr-alabaya.vercel.app"
                   dir="ltr"
                   className="w-full bg-[var(--bg-secondary)] border border-[var(--border-subtle)] focus:border-[var(--accent-gold)] rounded-xl px-4 py-3 text-xs text-[var(--text-primary)] focus:outline-none transition-colors"
                 />

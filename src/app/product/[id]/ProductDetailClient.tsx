@@ -312,42 +312,8 @@ export default function ProductDetailClient({
     ? (reviewsData?.reviews as any).data
     : [];
 
-  // SEO Schema for this Product (JSON-LD Rich Snippet)
-  const productJsonLd = {
-    '@context': 'https://schema.org/',
-    '@type': 'Product',
-    name: product.name,
-    image: images,
-    description: product.description,
-    sku: `ABAYA-${product.id}`,
-    brand: {
-      '@type': 'Brand',
-      name: settings.storeName?.trim() || "قصر العباية",
-    },
-    offers: {
-      '@type': 'Offer',
-      url: `https://abaya-luxury.com/product/${product.id}`,
-      priceCurrency: 'EGP',
-      price: hasDiscount ? finalPrice : product.price,
-      availability: maxStock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-      itemCondition: 'https://schema.org/NewCondition',
-    },
-    aggregateRating: reviewsData?.totalReviews
-      ? {
-          '@type': 'AggregateRating',
-          ratingValue: reviewsData.averageRating,
-          reviewCount: reviewsData.totalReviews,
-        }
-      : undefined,
-  };
-
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
-      />
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 space-y-20">
         {/* Breadcrumb Navigation */}
         <nav className="flex items-center gap-2 text-xs text-[var(--text-secondary)] uppercase tracking-wider">

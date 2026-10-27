@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { productsService } from '@/api/products';
+import { reviewsService } from '@/api/reviews';
 import ProductDetailClient from './ProductDetailClient';
 
 interface Props {
@@ -105,8 +106,18 @@ export default async function ProductPage({ params }: Props) {
   }
 
   let product = null;
+  let reviewsData = null;
   try {
-    product = await productsService.getProductById(id);
+    const [prodRes, revRes] = await Promise.allSettled([
+      productsService.getProductById(id),
+      reviewsService.getProductReviews(id),
+    ]);
+    if (prodRes.status === 'fulfilled') {
+      product = prodRes.value;
+    }
+    if (revRes.status === 'fulfilled') {
+      reviewsData = revRes.value;
+    }
   } catch (err) {
     console.error(`Failed to fetch product ${id} on server:`, err);
   }
@@ -121,6 +132,8 @@ export default async function ProductPage({ params }: Props) {
     : product.pictureUrl
     ? [product.pictureUrl]
     : [];
+
+  const totalStock = product.variants?.reduce((sum, v) => sum + (v.stockQuantity || 0), 0) ?? 1;
 
   // Production-Ready Product & AggregateOffer Schema (JSON-LD)
   const productJsonLd = {
@@ -145,7 +158,7 @@ export default async function ProductPage({ params }: Props) {
       price: effectivePrice,
       priceValidUntil: '2027-12-31',
       itemCondition: 'https://schema.org/NewCondition',
-      availability: 'https://schema.org/InStock',
+      availability: totalStock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       seller: {
         '@type': 'Organization',
         name: 'قصر العباية',
@@ -187,6 +200,15 @@ export default async function ProductPage({ params }: Props) {
         },
       },
     },
+    ...(reviewsData?.totalReviews && reviewsData.totalReviews > 0
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: reviewsData.averageRating,
+            reviewCount: reviewsData.totalReviews,
+          },
+        }
+      : {}),
   };
 
   return (
