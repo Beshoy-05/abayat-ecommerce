@@ -135,80 +135,125 @@ export default async function ProductPage({ params }: Props) {
 
   const totalStock = product.variants?.reduce((sum, v) => sum + (v.stockQuantity || 0), 0) ?? 1;
 
-  // Production-Ready Product & AggregateOffer Schema (JSON-LD)
-  const productJsonLd = {
+  // Production-Ready Product & BreadcrumbList Schema (JSON-LD Graph)
+  const richGraphJsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'Product',
-    '@id': `${baseUrl}/product/${product.id}#product`,
-    name: product.name,
-    image: images,
-    description: product.description,
-    sku: `QA-ABAYA-${product.id}`,
-    mpn: `QA-${product.id}`,
-    brand: {
-      '@type': 'Brand',
-      name: 'قصر العباية',
-    },
-    material: '100% Pure Japanese Silk & Royal Black Crepe',
-    category: product.categoryName || 'عبايات هوت كوتور',
-    offers: {
-      '@type': 'Offer',
-      url: `${baseUrl}/product/${product.id}`,
-      priceCurrency: 'EGP',
-      price: effectivePrice,
-      priceValidUntil: '2027-12-31',
-      itemCondition: 'https://schema.org/NewCondition',
-      availability: totalStock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-      seller: {
-        '@type': 'Organization',
-        name: 'قصر العباية',
-      },
-      hasMerchantReturnPolicy: {
-        '@type': 'MerchantReturnPolicy',
-        applicableCountry: 'EG',
-        returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
-        merchantReturnDays: 14,
-        returnMethod: 'https://schema.org/ReturnByMail',
-        returnFees: 'https://schema.org/FreeReturn',
-        customerRemorseReturnFees: 'https://schema.org/FreeReturn',
-      },
-      shippingDetails: {
-        '@type': 'OfferShippingDetails',
-        shippingRate: {
-          '@type': 'MonetaryAmount',
-          value: '65.00',
-          currency: 'EGP',
-        },
-        shippingDestination: {
-          '@type': 'DefinedRegion',
-          addressCountry: 'EG',
-        },
-        deliveryTime: {
-          '@type': 'ShippingDeliveryTime',
-          handlingTime: {
-            '@type': 'QuantitativeValue',
-            minValue: 1,
-            maxValue: 2,
-            unitCode: 'd',
+    '@graph': [
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${baseUrl}/product/${product.id}#breadcrumb`,
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'الرئيسية',
+            item: baseUrl,
           },
-          transitTime: {
-            '@type': 'QuantitativeValue',
-            minValue: 1,
-            maxValue: 3,
-            unitCode: 'd',
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'المتجر',
+            item: `${baseUrl}/shop`,
+          },
+          ...(product.categoryName
+            ? [
+                {
+                  '@type': 'ListItem',
+                  position: 3,
+                  name: product.categoryName,
+                  item: `${baseUrl}/shop?categoryId=${product.categoryId || ''}`,
+                },
+                {
+                  '@type': 'ListItem',
+                  position: 4,
+                  name: product.name,
+                  item: `${baseUrl}/product/${product.id}`,
+                },
+              ]
+            : [
+                {
+                  '@type': 'ListItem',
+                  position: 3,
+                  name: product.name,
+                  item: `${baseUrl}/product/${product.id}`,
+                },
+              ]),
+        ],
+      },
+      {
+        '@type': 'Product',
+        '@id': `${baseUrl}/product/${product.id}#product`,
+        name: product.name,
+        image: images,
+        description: product.description,
+        sku: `QA-ABAYA-${product.id}`,
+        mpn: `QA-${product.id}`,
+        brand: {
+          '@type': 'Brand',
+          name: 'قصر العباية',
+        },
+        material: '100% Pure Japanese Silk & Royal Black Crepe',
+        category: product.categoryName || 'عبايات هوت كوتور',
+        offers: {
+          '@type': 'Offer',
+          url: `${baseUrl}/product/${product.id}`,
+          priceCurrency: 'EGP',
+          price: effectivePrice,
+          priceValidUntil: '2027-12-31',
+          itemCondition: 'https://schema.org/NewCondition',
+          availability: totalStock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+          seller: {
+            '@type': 'Organization',
+            name: 'قصر العباية',
+          },
+          hasMerchantReturnPolicy: {
+            '@type': 'MerchantReturnPolicy',
+            applicableCountry: 'EG',
+            returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+            merchantReturnDays: 14,
+            returnMethod: 'https://schema.org/ReturnByMail',
+            returnFees: 'https://schema.org/FreeReturn',
+            customerRemorseReturnFees: 'https://schema.org/FreeReturn',
+          },
+          shippingDetails: {
+            '@type': 'OfferShippingDetails',
+            shippingRate: {
+              '@type': 'MonetaryAmount',
+              value: '65.00',
+              currency: 'EGP',
+            },
+            shippingDestination: {
+              '@type': 'DefinedRegion',
+              addressCountry: 'EG',
+            },
+            deliveryTime: {
+              '@type': 'ShippingDeliveryTime',
+              handlingTime: {
+                '@type': 'QuantitativeValue',
+                minValue: 1,
+                maxValue: 2,
+                unitCode: 'd',
+              },
+              transitTime: {
+                '@type': 'QuantitativeValue',
+                minValue: 1,
+                maxValue: 3,
+                unitCode: 'd',
+              },
+            },
           },
         },
+        ...(reviewsData?.totalReviews && reviewsData.totalReviews > 0
+          ? {
+              aggregateRating: {
+                '@type': 'AggregateRating',
+                ratingValue: reviewsData.averageRating,
+                reviewCount: reviewsData.totalReviews,
+              },
+            }
+          : {}),
       },
-    },
-    ...(reviewsData?.totalReviews && reviewsData.totalReviews > 0
-      ? {
-          aggregateRating: {
-            '@type': 'AggregateRating',
-            ratingValue: reviewsData.averageRating,
-            reviewCount: reviewsData.totalReviews,
-          },
-        }
-      : {}),
+    ],
   };
 
   return (
@@ -216,7 +261,7 @@ export default async function ProductPage({ params }: Props) {
       {/* 🚀 Server-Side Rich Snippets JSON-LD for Googlebot */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(richGraphJsonLd) }}
       />
       {/* 👑 Interactive Client Island */}
       <ProductDetailClient initialProduct={product} id={id} />

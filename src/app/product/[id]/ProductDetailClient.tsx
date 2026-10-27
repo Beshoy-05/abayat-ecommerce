@@ -336,7 +336,7 @@ export default function ProductDetailClient({
             <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden bg-[var(--bg-secondary)] border border-[var(--border-subtle)] shadow-xl group" style={{ position: 'relative' }}>
               <Image
                 src={activeImage}
-                alt={product.name}
+                alt={`${product.name} - ${product.categoryName || 'عباية ملكية'} | دار قصر العباية`}
                 fill
                 priority
                 className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
@@ -401,7 +401,7 @@ export default function ProductDetailClient({
                         : 'border-[var(--border-subtle)] opacity-70 hover:opacity-100'
                     }`}
                   >
-                    <Image src={img} alt="Angle thumbnail" fill className="object-cover" />
+                    <Image src={img} alt={`${product.name} - زاوية عرض تفصيلية ${idx + 1}`} fill className="object-cover" />
                   </button>
                 ))}
               </div>

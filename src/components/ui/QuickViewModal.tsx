@@ -173,7 +173,7 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
                           : 'border-transparent opacity-60 hover:opacity-100'
                       }`}
                     >
-                      <Image src={img} alt="Thumb" fill className="object-cover rounded-md" />
+                      <Image src={img} alt={`${product.name} - مصغرة ${idx + 1}`} fill className="object-cover rounded-md" />
                     </button>
                   ))}
                 </div>

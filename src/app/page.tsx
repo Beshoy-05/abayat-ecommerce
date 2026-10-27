@@ -312,7 +312,7 @@ export default function HomePage() {
           <div className="lg:col-span-6 relative aspect-square lg:aspect-auto min-h-[400px]" style={{ position: 'relative' }}>
             <Image
               src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=1200&q=80"
-              alt="Silk Atelier Craftsmanship"
+              alt={language === 'ar' ? 'حرفة تفصيل عبايات الحرير والكريب الملكي في دار قصر العباية' : 'Artisanal Silk Atelier Craftsmanship at Qasr Al-Abaya'}
               fill
               sizes="(max-width: 1024px) 100vw, 50vw"
               className="object-cover"

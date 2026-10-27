@@ -168,7 +168,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
               <Image
                 key={`${imgUrl}-${idx}`}
                 src={imgUrl}
-                alt={`${product.name} - ${idx + 1}`}
+                alt={`${product.name} - ${product.categoryName || 'عباية ملكية فاخرة'} | دار قصر العباية (صورة ${idx + 1})`}
                 fill
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 priority={priority && idx === 0}

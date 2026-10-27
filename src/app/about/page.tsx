@@ -40,7 +40,7 @@ export default function AboutPage() {
         <div className="relative aspect-[4/3] rounded-3xl overflow-hidden border border-[var(--border-subtle)] shadow-2xl" style={{ position: 'relative' }}>
           <Image
             src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=1000&q=80"
-            alt="Atelier Craftsmanship"
+            alt={language === 'ar' ? 'دار قصر العباية - أصالة الحرفة وتفصيل عبايات الهوت كوتور' : 'Qasr Al-Abaya Atelier - Haute Couture Craftsmanship'}
             fill
             sizes="(max-width: 1024px) 100vw, 50vw"
             className="object-cover"
