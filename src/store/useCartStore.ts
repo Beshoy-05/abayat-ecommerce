@@ -48,13 +48,17 @@ const enrichCartItems = async (items: CartItem[]): Promise<CartItem[]> => {
       const res = await productsService.getProducts({ pageSize: 50 });
       if (res && res.data) {
         res.data.forEach((p) => {
+          const sellingPrice =
+            p.finalPrice !== undefined && p.finalPrice !== null && p.finalPrice > 0
+              ? p.finalPrice
+              : p.price;
           p.variants?.forEach((v) => {
             map[v.id] = {
               productId: p.id,
               productName: p.name,
               color: v.color,
               size: v.size,
-              unitPrice: p.price,
+              unitPrice: sellingPrice,
               pictureUrl: v.images?.[0] || p.pictureUrl || '',
             };
           });
@@ -153,13 +157,18 @@ export const useCartStore = create<CartState>()(
       },
 
       addItem: async ({ product, variant, quantity, isAuthenticated }) => {
+        const sellingPrice =
+          product.finalPrice !== undefined && product.finalPrice !== null && product.finalPrice > 0
+            ? product.finalPrice
+            : product.price;
+
         // Cache metadata for this variant immediately
         saveVariantMeta(variant.id, {
           productId: product.id,
           productName: product.name,
           color: variant.color,
           size: variant.size,
-          unitPrice: product.price,
+          unitPrice: sellingPrice,
           pictureUrl: variant.images?.[0] || product.pictureUrl || '',
         });
 
@@ -188,7 +197,7 @@ export const useCartStore = create<CartState>()(
               variantId: variant.id,
               productId: product.id,
               name: product.name,
-              price: product.price,
+              price: sellingPrice,
               color: variant.color,
               size: variant.size,
               quantity,
@@ -214,7 +223,7 @@ export const useCartStore = create<CartState>()(
             newGuestItems[existingIndex] = {
               ...existing,
               quantity: updatedQty,
-              totalPrice: updatedQty * product.price,
+              totalPrice: updatedQty * sellingPrice,
             };
           } else {
             const newItem: CartItem = {
@@ -223,9 +232,9 @@ export const useCartStore = create<CartState>()(
               productName: product.name,
               color: variant.color,
               size: variant.size,
-              unitPrice: product.price,
+              unitPrice: sellingPrice,
               quantity,
-              totalPrice: product.price * quantity,
+              totalPrice: sellingPrice * quantity,
               pictureUrl: variant.images?.[0] || product.pictureUrl,
             };
             newGuestItems.push(newItem);
@@ -235,7 +244,7 @@ export const useCartStore = create<CartState>()(
             variantId: variant.id,
             productId: product.id,
             name: product.name,
-            price: product.price,
+            price: sellingPrice,
             color: variant.color,
             size: variant.size,
             quantity,

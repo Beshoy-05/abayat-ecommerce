@@ -38,13 +38,18 @@ export interface Product {
   name: string;
   description: string;
   price: number;
+  discount?: number | null; // Discount percentage (0 - 100)
+  finalPrice: number;        // The actual selling price
   categoryId: number;
   categoryName: string;
-  pictureUrl: string;
+  pictureUrl?: string;
   images: string[];
   variants: ProductVariant[];
   colorGroups: ColorGroup[];
 }
+
+export type ProductColorGroup = ColorGroup;
+export type ProductDto = Product;
 
 export interface Category {
   id: number;
@@ -190,9 +195,10 @@ export interface CreateProductPayload {
   name: string;
   description: string;
   price: number;
+  discount?: number | null;
   categoryId: number;
-  imageUrl: string;
-  imageUrls: string[];
+  imageUrl?: string;
+  imageUrls?: string[];
   colors: CreateProductColor[];
 }
 

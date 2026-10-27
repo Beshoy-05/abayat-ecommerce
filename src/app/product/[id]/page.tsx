@@ -151,14 +151,23 @@ export default function ProductDetailPage() {
 
   // Variant Hierarchy Extraction (Golden Rule #13)
   const colorGroups: ColorGroup[] = product.colorGroups || [];
+  const hasDiscount = Boolean(product.discount && product.discount > 0);
+  const finalPrice = product.finalPrice ?? (hasDiscount ? Number((product.price * (1 - (product.discount || 0) / 100)).toFixed(2)) : product.price);
+  const savedAmount = Math.max(0, product.price - finalPrice);
+
+  const defaultFallbackImage =
+    product.pictureUrl ||
+    product.images?.[0] ||
+    'https://res.cloudinary.com/moak0zto/image/upload/v1792652133/abaya-ecommerce/abaya-ecommerce/1000646012_20261022065532_152bcfffeb5747e889d6560f74eb66ea.jpg';
+
   const currentColorGroup = colorGroups[selectedColorIdx] || {
     color: 'Standard',
-    images: product.images?.length > 0 ? product.images : [product.pictureUrl],
+    images: product.images?.length > 0 ? product.images : [defaultFallbackImage],
     sizes: product.variants?.map((v) => ({ variantId: v.id, size: v.size, stockQuantity: v.stockQuantity })) || [],
   };
 
-  const images = currentColorGroup.images?.length > 0 ? currentColorGroup.images : [product.pictureUrl];
-  const activeImage = images[selectedImageIdx] || product.pictureUrl;
+  const images = currentColorGroup.images?.length > 0 ? currentColorGroup.images : [defaultFallbackImage];
+  const activeImage = images[selectedImageIdx] || defaultFallbackImage;
   const currentSizes = currentColorGroup.sizes || [];
 
   const handleColorChange = (idx: number) => {
@@ -274,8 +283,8 @@ export default function ProductDetailPage() {
     offers: {
       '@type': 'Offer',
       url: `https://abaya-luxury.com/product/${product.id}`,
-      priceCurrency: 'SAR',
-      price: product.price,
+      priceCurrency: 'EGP',
+      price: hasDiscount ? finalPrice : product.price,
       availability: maxStock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       itemCondition: 'https://schema.org/NewCondition',
     },
@@ -322,6 +331,15 @@ export default function ProductDetailPage() {
                 priority
                 className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
               />
+
+              {/* Discount Badge on Main Image */}
+              {hasDiscount && (
+                <div className="absolute top-4 left-4 z-10">
+                  <span className="px-3 py-1.5 rounded-full text-xs font-bold tracking-wider bg-rose-600 text-white shadow-lg flex items-center gap-1.5">
+                    {language === 'ar' ? `خصم ${product.discount}%` : `-${product.discount}% OFF`}
+                  </span>
+                </div>
+              )}
 
               {/* Wishlist Floating Button */}
               <button
@@ -378,9 +396,32 @@ export default function ProductDetailPage() {
                 {product.name}
               </h1>
 
-              <p className="font-serif text-2xl font-bold text-[var(--accent-gold)]">
-                {formatPrice(product.price)}
-              </p>
+              <div className="pt-2">
+                {hasDiscount ? (
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <span className="font-serif text-3xl sm:text-4xl font-bold text-emerald-600 dark:text-emerald-400">
+                        {formatPrice(finalPrice)}
+                      </span>
+                      <span className="line-through text-lg sm:text-xl text-gray-400 dark:text-gray-500">
+                        {formatPrice(product.price)}
+                      </span>
+                      <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-500/10 text-rose-500 border border-rose-500/20">
+                        {language === 'ar' ? `خصم ${product.discount}%` : `-${product.discount}%`}
+                      </span>
+                    </div>
+                    <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                      {language === 'ar'
+                        ? `وفرتِ ${formatPrice(savedAmount)}`
+                        : `You save ${formatPrice(savedAmount)}`}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="font-serif text-2xl font-bold text-[var(--accent-gold)]">
+                    {formatPrice(product.price)}
+                  </p>
+                )}
+              </div>
 
               <p className="text-xs text-[var(--text-secondary)] leading-relaxed font-light">
                 {product.description}
@@ -754,9 +795,16 @@ export default function ProductDetailPage() {
             className="fixed bottom-0 inset-x-0 z-40 lg:hidden p-4 bg-[var(--bg-surface)]/95 backdrop-blur-xl border-t border-[var(--border-subtle)] shadow-2xl flex items-center justify-between gap-4"
           >
             <div>
-              <span className="font-serif text-base font-bold text-[var(--accent-gold)]">
-                {formatPrice(product.price)}
-              </span>
+              <div className="flex items-baseline gap-2">
+                <span className="font-serif text-base font-bold text-emerald-600 dark:text-emerald-400">
+                  {formatPrice(hasDiscount ? finalPrice : product.price)}
+                </span>
+                {hasDiscount && (
+                  <span className="line-through text-xs text-gray-400 dark:text-gray-500">
+                    {formatPrice(product.price)}
+                  </span>
+                )}
+              </div>
               <span className="block text-[10px] text-[var(--text-secondary)] truncate max-w-[140px]">
                 {product.name}
               </span>

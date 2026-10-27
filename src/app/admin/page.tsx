@@ -887,6 +887,11 @@ export default function AdminDashboardPage() {
                     <span className="absolute top-3 right-3 text-[10px] font-bold bg-black/70 backdrop-blur-md text-[var(--accent-gold)] px-2.5 py-1 rounded-full border border-[var(--accent-gold)]/30">
                       #{product.id}
                     </span>
+                    {product.discount && product.discount > 0 ? (
+                      <span className="absolute top-3 left-3 text-[10px] font-bold bg-rose-600 text-white px-2 py-0.5 rounded-full shadow-md">
+                        -{product.discount}%
+                      </span>
+                    ) : null}
                   </div>
 
                   <span className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
@@ -895,9 +900,20 @@ export default function AdminDashboardPage() {
                   <h4 className="font-serif text-base font-semibold text-[var(--text-primary)] mt-0.5 line-clamp-1">
                     {product.name}
                   </h4>
-                  <p className="font-serif text-sm font-bold text-[var(--accent-gold)] mt-1">
-                    {formatPrice(product.price)}
-                  </p>
+                  {product.discount && product.discount > 0 ? (
+                    <div className="flex items-baseline gap-2 mt-1">
+                      <span className="font-serif text-sm font-bold text-emerald-400">
+                        {formatPrice(product.finalPrice ?? Number((product.price * (1 - product.discount / 100)).toFixed(2)))}
+                      </span>
+                      <span className="line-through text-xs text-[var(--text-secondary)]">
+                        {formatPrice(product.price)}
+                      </span>
+                    </div>
+                  ) : (
+                    <p className="font-serif text-sm font-bold text-[var(--accent-gold)] mt-1">
+                      {formatPrice(product.price)}
+                    </p>
+                  )}
                 </div>
 
                 {/* Stock across variants */}

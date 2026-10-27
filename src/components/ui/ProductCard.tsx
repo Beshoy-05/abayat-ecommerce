@@ -43,6 +43,8 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
 
   // Compute total available units across all variants
   const totalStock = product.variants?.reduce((sum, v) => sum + (v.stockQuantity || 0), 0) ?? 10;
+  const hasDiscount = Boolean(product.discount && product.discount > 0);
+  const finalPrice = product.finalPrice ?? (hasDiscount ? Number((product.price * (1 - (product.discount || 0) / 100)).toFixed(2)) : product.price);
 
   const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -86,7 +88,13 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
           {/* Badges */}
-          <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
+          <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5 items-start">
+            {hasDiscount && (
+              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider bg-rose-600 text-white shadow-md flex items-center gap-1">
+                {language === 'ar' ? `خصم ${product.discount}%` : `-${product.discount}%`}
+              </span>
+            )}
+
             {totalStock <= 5 && totalStock > 0 ? (
               <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-500/90 text-black shadow-md backdrop-blur-sm">
                 {t.card.limitedStock.replace('{count}', totalStock.toString())}
@@ -173,9 +181,22 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
 
           {/* Price & Action */}
           <div className="pt-2 border-t border-[var(--border-subtle)] flex items-center justify-between">
-            <span className="font-serif text-base sm:text-lg font-semibold text-[var(--accent-gold)]">
-              {formatPrice(product.price)}
-            </span>
+            <div className="flex items-baseline gap-2 flex-wrap">
+              {hasDiscount ? (
+                <>
+                  <span className="font-serif text-base sm:text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                    {formatPrice(finalPrice)}
+                  </span>
+                  <span className="line-through text-xs sm:text-sm text-gray-400 dark:text-gray-500">
+                    {formatPrice(product.price)}
+                  </span>
+                </>
+              ) : (
+                <span className="font-serif text-base sm:text-lg font-semibold text-[var(--accent-gold)]">
+                  {formatPrice(product.price)}
+                </span>
+              )}
+            </div>
 
             <Link
               href={`/product/${product.id}`}

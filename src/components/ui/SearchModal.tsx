@@ -148,9 +148,25 @@ export default function SearchModal() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <span className="font-semibold text-sm text-[var(--accent-gold)]">
-                        {formatPrice(product.price)}
-                      </span>
+                      {product.discount && product.discount > 0 ? (
+                        <div className="flex flex-col items-end">
+                          <span className="font-bold text-sm text-emerald-600 dark:text-emerald-400">
+                            {formatPrice(product.finalPrice ?? Number((product.price * (1 - product.discount / 100)).toFixed(2)))}
+                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="line-through text-[11px] text-[var(--text-secondary)] opacity-75">
+                              {formatPrice(product.price)}
+                            </span>
+                            <span className="text-[10px] font-bold text-rose-500">
+                              -{product.discount}%
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="font-semibold text-sm text-[var(--accent-gold)]">
+                          {formatPrice(product.price)}
+                        </span>
+                      )}
                     </div>
                   </Link>
                 ))

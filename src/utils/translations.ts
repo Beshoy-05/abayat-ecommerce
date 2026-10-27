@@ -62,6 +62,7 @@ export const translations = {
       limitedStock: "Only {count} Left",
       outOfStock: "Sold Out",
       colorOptions: "{count} Color Shades",
+      discountBadge: "-{discount}%",
     },
     pdp: {
       selectColor: "1. Select Royal Color",
@@ -75,6 +76,8 @@ export const translations = {
       adding: "Reserving Piece...",
       addedSuccess: "Successfully placed in your luxury bag",
       stickyCta: "Reserve Now",
+      discountBadge: "{discount}% OFF",
+      youSaved: "You Save {amount}",
       tabs: {
         craft: "Fabric & Craftsmanship",
         sizeFit: "Bespoke Size & Fit",
@@ -212,6 +215,7 @@ export const translations = {
       limitedStock: "متبقي {count} قطع فقط",
       outOfStock: "نفد من المخزون",
       colorOptions: "{count} ألوان متوفرة",
+      discountBadge: "خصم {discount}%",
     },
     pdp: {
       selectColor: "1. اختاري اللون الملكي",
@@ -225,6 +229,8 @@ export const translations = {
       adding: "جاري الحجز...",
       addedSuccess: "تمت الإضافة بنجاح إلى حقيبتك",
       stickyCta: "احجزي الآن",
+      discountBadge: "خصم {discount}%",
+      youSaved: "وفرتِ {amount}",
       tabs: {
         craft: "القماش والحرفية",
         sizeFit: "المقاس والقصّة",

@@ -150,7 +150,7 @@ function ShopContent() {
             res.data.map((p) => ({
               id: p.id,
               name: p.name,
-              price: p.price,
+              price: p.finalPrice ?? p.price,
               category: p.categoryName,
             }))
           );

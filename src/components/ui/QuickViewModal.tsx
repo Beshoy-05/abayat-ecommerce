@@ -32,14 +32,21 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
   if (!product) return null;
 
   const colorGroups: ColorGroup[] = product.colorGroups || [];
+  const hasDiscount = Boolean(product.discount && product.discount > 0);
+  const finalPrice = product.finalPrice ?? (hasDiscount ? Number((product.price * (1 - (product.discount || 0) / 100)).toFixed(2)) : product.price);
+  const defaultFallbackImage =
+    product.pictureUrl ||
+    product.images?.[0] ||
+    'https://res.cloudinary.com/moak0zto/image/upload/v1792652133/abaya-ecommerce/abaya-ecommerce/1000646012_20261022065532_152bcfffeb5747e889d6560f74eb66ea.jpg';
+
   const currentColorGroup = colorGroups[selectedColorIndex] || {
     color: 'Default',
-    images: product.images || [product.pictureUrl],
+    images: product.images?.length > 0 ? product.images : [defaultFallbackImage],
     sizes: product.variants?.map((v) => ({ variantId: v.id, size: v.size, stockQuantity: v.stockQuantity })) || [],
   };
 
-  const images = currentColorGroup.images?.length > 0 ? currentColorGroup.images : [product.pictureUrl];
-  const activeImage = images[activeImageIndex] || product.pictureUrl;
+  const images = currentColorGroup.images?.length > 0 ? currentColorGroup.images : [defaultFallbackImage];
+  const activeImage = images[activeImageIndex] || defaultFallbackImage;
   const currentSizes = currentColorGroup.sizes || [];
 
   const handleSelectColor = (index: number) => {
@@ -107,13 +114,18 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
 
             {/* Left Column: Image Gallery */}
             <div className="p-6 bg-[var(--bg-secondary)] flex flex-col justify-between">
-              <div className="aspect-[3/4] relative rounded-xl overflow-hidden bg-[var(--bg-primary)]">
+              <div className="aspect-[3/4] relative rounded-xl overflow-hidden bg-[var(--bg-primary)]" style={{ position: 'relative' }}>
                 <Image
                   src={activeImage || 'https://res.cloudinary.com/moak0zto/image/upload/v1792652133/abaya-ecommerce/abaya-ecommerce/1000646012_20261022065532_152bcfffeb5747e889d6560f74eb66ea.jpg'}
                   alt={product.name}
                   fill
                   className="object-cover"
                 />
+                {hasDiscount && (
+                  <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider bg-rose-600 text-white shadow-md z-10">
+                    {language === 'ar' ? `خصم ${product.discount}%` : `-${product.discount}%`}
+                  </span>
+                )}
               </div>
 
               {/* Thumbnails */}
@@ -146,9 +158,23 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
                 <h3 className="font-serif text-2xl font-light text-[var(--text-primary)] mt-1">
                   {product.name}
                 </h3>
-                <p className="font-serif text-xl font-bold text-[var(--accent-gold)] mt-2">
-                  {formatPrice(product.price)}
-                </p>
+                {hasDiscount ? (
+                  <div className="flex items-center gap-3 mt-2 flex-wrap">
+                    <span className="font-serif text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                      {formatPrice(finalPrice)}
+                    </span>
+                    <span className="line-through text-base text-gray-400 dark:text-gray-500">
+                      {formatPrice(product.price)}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-rose-500/10 text-rose-500 border border-rose-500/20">
+                      {language === 'ar' ? `خصم ${product.discount}%` : `-${product.discount}%`}
+                    </span>
+                  </div>
+                ) : (
+                  <p className="font-serif text-xl font-bold text-[var(--accent-gold)] mt-2">
+                    {formatPrice(product.price)}
+                  </p>
+                )}
 
                 {/* Color Selection */}
                 {colorGroups.length > 0 && (

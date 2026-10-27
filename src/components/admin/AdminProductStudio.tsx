@@ -184,9 +184,29 @@ export default function AdminProductStudio({
   const [price, setPrice] = useState<string>(
     initialProduct?.price ? initialProduct.price.toString() : ''
   );
+  const [discount, setDiscount] = useState<string>(
+    initialProduct?.discount !== undefined && initialProduct?.discount !== null
+      ? initialProduct.discount.toString()
+      : ''
+  );
   const [description, setDescription] = useState(
     initialProduct?.description || ''
   );
+
+  // Live Final Price Preview Calculations
+  const numPrice = parseFloat(price) || 0;
+  const numDiscount = parseFloat(discount) || 0;
+  const isDiscountActive = numDiscount > 0 && numDiscount <= 100;
+  const liveFinalPrice =
+    numPrice > 0
+      ? isDiscountActive
+        ? (numPrice * (1 - numDiscount / 100)).toFixed(2)
+        : numPrice.toFixed(2)
+      : '0.00';
+  const liveSavedAmount =
+    numPrice > 0 && isDiscountActive
+      ? (numPrice - parseFloat(liveFinalPrice)).toFixed(2)
+      : '0.00';
 
   // 2. Colorways & Variants
   const [colorVariants, setColorVariants] = useState<ColorVariantState[]>(
@@ -514,6 +534,13 @@ export default function AdminProductStudio({
       showToast('error', 'يرجى إدخال سعر صحيح أكبر من الصفر');
       return;
     }
+    if (discount.trim() !== '') {
+      const parsedDiscount = parseFloat(discount);
+      if (isNaN(parsedDiscount) || parsedDiscount < 0 || parsedDiscount > 100) {
+        showToast('error', 'نسبة الخصم يجب أن تكون بين 0 و 100');
+        return;
+      }
+    }
     if (!categoryId) {
       showToast('error', 'يرجى اختيار القسم');
       return;
@@ -544,10 +571,14 @@ export default function AdminProductStudio({
       );
 
       // Construct Payload conforming strictly to backend CreateProductCommand DTO
+      const parsedDiscountVal =
+        discount.trim() !== '' ? Number(discount) : null;
+
       const payload: any = {
         name: name.trim(),
         description: description.trim() || name.trim(),
         price: parsedPrice,
+        discount: parsedDiscountVal,
         categoryId: Number(categoryId),
         colors: colorVariants.map((c) => ({
           color: c.colorName.trim(),
@@ -692,25 +723,8 @@ export default function AdminProductStudio({
               />
             </div>
 
-            {/* Price */}
-            <div className="md:col-span-3 space-y-1.5">
-              <label className="block text-xs uppercase tracking-wider text-[var(--text-secondary)] font-bold">
-                السعر بالجنيه (EGP) *
-              </label>
-              <input
-                type="number"
-                required
-                min="1"
-                step="0.01"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                placeholder="مثال: 1450"
-                className="w-full bg-[var(--bg-secondary)] border border-[var(--border-subtle)] focus:border-[var(--accent-gold)] rounded-2xl px-4 py-3 text-sm text-[var(--text-primary)] outline-none font-mono transition-colors"
-              />
-            </div>
-
             {/* Category */}
-            <div className="md:col-span-3 space-y-1.5">
+            <div className="md:col-span-6 space-y-1.5">
               <label className="block text-xs uppercase tracking-wider text-[var(--text-secondary)] font-bold">
                 قسم الكتالوج *
               </label>
@@ -725,6 +739,91 @@ export default function AdminProductStudio({
                   </option>
                 ))}
               </select>
+            </div>
+
+            {/* Price */}
+            <div className="md:col-span-4 space-y-1.5">
+              <label className="block text-xs uppercase tracking-wider text-[var(--text-secondary)] font-bold">
+                السعر الأصلي بالجنيه (EGP) *
+              </label>
+              <input
+                type="number"
+                required
+                min="1"
+                step="0.01"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                placeholder="مثال: 1450"
+                className="w-full bg-[var(--bg-secondary)] border border-[var(--border-subtle)] focus:border-[var(--accent-gold)] rounded-2xl px-4 py-3 text-sm text-[var(--text-primary)] outline-none font-mono transition-colors"
+              />
+            </div>
+
+            {/* Discount (%) */}
+            <div className="md:col-span-4 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs uppercase tracking-wider text-[var(--text-secondary)] font-bold">
+                  الخصم (%) / Discount (%)
+                </label>
+                <span className="text-[10px] text-[var(--text-secondary)]">اختياري (0 - 100)</span>
+              </div>
+              <input
+                type="number"
+                min="0"
+                max="100"
+                step="1"
+                value={discount}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === '') {
+                    setDiscount('');
+                  } else {
+                    const num = Number(val);
+                    if (num >= 0 && num <= 100) {
+                      setDiscount(val);
+                    }
+                  }
+                }}
+                placeholder="مثال: 15"
+                className="w-full bg-[var(--bg-secondary)] border border-[var(--border-subtle)] focus:border-[var(--accent-gold)] rounded-2xl px-4 py-3 text-sm text-[var(--text-primary)] outline-none font-mono transition-colors"
+              />
+            </div>
+
+            {/* Instant Final Price Preview */}
+            <div className="md:col-span-4 flex flex-col justify-end">
+              <div
+                className={`p-3 rounded-2xl border transition-all ${
+                  isDiscountActive
+                    ? 'bg-emerald-500/10 border-emerald-500/30'
+                    : 'bg-[var(--bg-secondary)] border-[var(--border-subtle)]'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-[var(--text-secondary)]">
+                    معاينة السعر النهائي
+                  </span>
+                  {isDiscountActive && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 font-bold border border-rose-500/30">
+                      خصم {numDiscount}%
+                    </span>
+                  )}
+                </div>
+                <div className="mt-1 flex items-baseline gap-2">
+                  <span
+                    className={`text-lg font-bold font-mono ${
+                      isDiscountActive
+                        ? 'text-emerald-400'
+                        : 'text-[var(--accent-gold)]'
+                    }`}
+                  >
+                    {liveFinalPrice} EGP
+                  </span>
+                  {isDiscountActive && (
+                    <span className="text-[11px] text-[var(--text-secondary)]">
+                      (وفرت: {liveSavedAmount} EGP)
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Description */}
