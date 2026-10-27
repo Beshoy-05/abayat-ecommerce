@@ -196,7 +196,7 @@ export default function CheckoutPage() {
         shippingAddress: `${streetAddress.trim()} | العميل: ${fullName.trim()} | الهاتف: ${phone.trim()}`,
         deliveryMethodId: selectedDeliveryMethodId,
         paymentMethod: paymentMethod,
-        paymentReceiptUrl: receiptUrl || null,
+        paymentReceiptUrl: paymentMethod === 'CashOnDelivery' ? null : (receiptUrl || null),
         comments: comments.trim() || undefined,
         items: items.map((it) => ({
           productVariantId: it.productVariantId,
@@ -674,105 +674,124 @@ export default function CheckoutPage() {
               )}
 
               {paymentMethod === 'CashOnDelivery' && (
-                <div className="p-5 rounded-2xl bg-[var(--bg-secondary)] border border-[var(--border-subtle)] space-y-2">
-                  <h4 className="font-serif text-sm font-semibold text-[var(--text-primary)]">
-                    الدفع عند الاستلام نقداً
-                  </h4>
-                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                    ستقومين بدفع المبلغ نقداً لمندوب الشحن عند استلام وفحص عبايتكِ الفاخرة. يمكنكِ أيضاً إرفاق صورة البطاقة أو أي تأكيد إذا رغبتِ.
+                <div className="p-5 rounded-2xl bg-[var(--bg-secondary)] border border-emerald-500/30 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                        <CheckCircle2 className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h4 className="font-serif text-sm font-semibold text-[var(--text-primary)]">
+                          {language === 'ar' ? 'الدفع نقداً عند الاستلام' : 'Cash on Delivery'}
+                        </h4>
+                        <p className="text-[11px] text-[var(--text-secondary)]">
+                          {language === 'ar' ? 'لا يتطلب رفع أي إيصال أو تحويل مسبق' : 'No prior receipt or transfer required'}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] uppercase font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20">
+                      {language === 'ar' ? 'معاينة وفحص كامل' : 'Full Inspection'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed pt-1 border-t border-[var(--border-subtle)]">
+                    {language === 'ar'
+                      ? 'ستقومين بسداد كامل المبلغ لمندوب الشحن نقداً بعد استلام وفحص العباية والتأكد من المقاس والخامة الملكية والتطريز. اضغطي على زر المتابعة بالأسفل لتأكيد طلبكِ مباشرة.'
+                      : 'You will pay the total amount in cash to the courier upon delivery after inspecting the piece. Click the button below to review and confirm your order directly.'}
                   </p>
                 </div>
               )}
 
-              {/* 📸 MANDATORY RECEIPT SCREENSHOT UPLOAD */}
-              <div className="p-6 rounded-2xl bg-[var(--bg-secondary)] border border-[var(--accent-gold)]/40 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <h3 className="font-serif text-sm font-semibold text-[var(--text-primary)] flex items-center gap-2">
-                      <UploadCloud className="w-4 h-4 text-[var(--accent-gold)]" />
-                      <span>{language === 'ar' ? 'رفع سكرين شوت إيصال التحويل' : 'Upload Payment Receipt Screenshot'}</span>
-                      <span className="text-rose-500">*</span>
-                    </h3>
-                    <p className="text-[11px] text-[var(--text-secondary)]">
-                      {language === 'ar'
-                        ? 'مطلوب: ارفعي سكرينة تأكيد التحويل ليقوم الأدمن بفحصها واعتماد طلبكِ وخصم القطع من المخزون.'
-                        : 'Required: Upload your transfer confirmation screenshot for the admin to review and deduct inventory.'}
-                    </p>
+              {/* 📸 MANDATORY RECEIPT SCREENSHOT UPLOAD (Only for InstaPay & Vodafone Cash) */}
+              {paymentMethod !== 'CashOnDelivery' && (
+                <div className="p-6 rounded-2xl bg-[var(--bg-secondary)] border border-[var(--accent-gold)]/40 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <h3 className="font-serif text-sm font-semibold text-[var(--text-primary)] flex items-center gap-2">
+                        <UploadCloud className="w-4 h-4 text-[var(--accent-gold)]" />
+                        <span>{language === 'ar' ? 'رفع سكرين شوت إيصال التحويل' : 'Upload Payment Receipt Screenshot'}</span>
+                        <span className="text-rose-500">*</span>
+                      </h3>
+                      <p className="text-[11px] text-[var(--text-secondary)]">
+                        {language === 'ar'
+                          ? 'مطلوب: ارفعي سكرينة تأكيد التحويل ليقوم الأدمن بفحصها واعتماد طلبكِ وخصم القطع من المخزون.'
+                          : 'Required: Upload your transfer confirmation screenshot for the admin to review and deduct inventory.'}
+                      </p>
+                    </div>
                   </div>
-                </div>
 
-                {/* Upload Area / Preview */}
-                {!receiptUrl ? (
-                  <label className="border-2 border-dashed border-[var(--border-subtle)] hover:border-[var(--accent-gold)] rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-colors bg-[var(--bg-surface)] group">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleReceiptUpload}
-                      disabled={isUploadingReceipt}
-                      className="hidden"
-                    />
-                    <div className="w-12 h-12 rounded-full bg-[var(--accent-gold)]/10 text-[var(--accent-gold)] flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-                      {isUploadingReceipt ? (
-                        <div className="w-5 h-5 border-2 border-[var(--accent-gold)] border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <UploadCloud className="w-6 h-6" />
-                      )}
-                    </div>
-                    <p className="text-xs font-semibold text-[var(--text-primary)]">
-                      {isUploadingReceipt
-                        ? (language === 'ar' ? 'جاري رفع صورة الإيصال...' : 'Uploading receipt...')
-                        : (language === 'ar' ? 'انقري هنا لاختيار صورة الإيصال أو اسحبيها' : 'Click to select receipt screenshot or drag & drop')}
-                    </p>
-                    <p className="text-[10px] text-[var(--text-secondary)] mt-1">PNG, JPG, WEBP (Max 10MB)</p>
-                  </label>
-                ) : (
-                  <div className="p-4 rounded-xl bg-[var(--bg-surface)] border border-emerald-500/30 flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-14 h-14 rounded-lg overflow-hidden border border-[var(--border-subtle)] relative shrink-0">
-                        <img
-                          src={receiptUrl}
-                          alt="Receipt Preview"
-                          className="w-full h-full object-cover"
-                        />
+                  {/* Upload Area / Preview */}
+                  {!receiptUrl ? (
+                    <label className="border-2 border-dashed border-[var(--border-subtle)] hover:border-[var(--accent-gold)] rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-colors bg-[var(--bg-surface)] group">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleReceiptUpload}
+                        disabled={isUploadingReceipt}
+                        className="hidden"
+                      />
+                      <div className="w-12 h-12 rounded-full bg-[var(--accent-gold)]/10 text-[var(--accent-gold)] flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                        {isUploadingReceipt ? (
+                          <div className="w-5 h-5 border-2 border-[var(--accent-gold)] border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <UploadCloud className="w-6 h-6" />
+                        )}
                       </div>
-                      <div>
-                        <div className="flex items-center gap-1.5 text-emerald-400 text-xs font-bold">
-                          <CheckCircle2 className="w-4 h-4" />
-                          <span>{language === 'ar' ? 'تم رفع الإيصال بنجاح' : 'Receipt uploaded successfully'}</span>
+                      <p className="text-xs font-semibold text-[var(--text-primary)]">
+                        {isUploadingReceipt
+                          ? (language === 'ar' ? 'جاري رفع صورة الإيصال...' : 'Uploading receipt...')
+                          : (language === 'ar' ? 'انقري هنا لاختيار صورة الإيصال أو اسحبيها' : 'Click to select receipt screenshot or drag & drop')}
+                      </p>
+                      <p className="text-[10px] text-[var(--text-secondary)] mt-1">PNG, JPG, WEBP (Max 10MB)</p>
+                    </label>
+                  ) : (
+                    <div className="p-4 rounded-xl bg-[var(--bg-surface)] border border-emerald-500/30 flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-14 h-14 rounded-lg overflow-hidden border border-[var(--border-subtle)] relative shrink-0">
+                          <img
+                            src={receiptUrl}
+                            alt="Receipt Preview"
+                            className="w-full h-full object-cover"
+                          />
                         </div>
-                        <p className="text-[10px] text-[var(--text-secondary)] mt-0.5 truncate max-w-[200px] sm:max-w-[300px]">
-                          {receiptFile?.name || 'receipt_screenshot.png'}
-                        </p>
+                        <div>
+                          <div className="flex items-center gap-1.5 text-emerald-400 text-xs font-bold">
+                            <CheckCircle2 className="w-4 h-4" />
+                            <span>{language === 'ar' ? 'تم رفع الإيصال بنجاح' : 'Receipt uploaded successfully'}</span>
+                          </div>
+                          <p className="text-[10px] text-[var(--text-secondary)] mt-0.5 truncate max-w-[200px] sm:max-w-[300px]">
+                            {receiptFile?.name || 'receipt_screenshot.png'}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <label className="text-[11px] font-semibold text-[var(--accent-gold)] hover:underline cursor-pointer shrink-0">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleReceiptUpload}
+                            className="hidden"
+                          />
+                          {language === 'ar' ? 'تغيير الصورة' : 'Change Image'}
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (receiptUrl) {
+                              imagesService.deleteImage(receiptUrl).catch(console.error);
+                            }
+                            setReceiptUrl('');
+                            setReceiptFile(null);
+                          }}
+                          className="p-1 rounded-lg text-rose-400 hover:text-white hover:bg-rose-500/20 transition-colors"
+                          title={language === 'ar' ? 'حذف الإيصال' : 'Delete Receipt'}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 shrink-0">
-                      <label className="text-[11px] font-semibold text-[var(--accent-gold)] hover:underline cursor-pointer shrink-0">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleReceiptUpload}
-                          className="hidden"
-                        />
-                        {language === 'ar' ? 'تغيير الصورة' : 'Change Image'}
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (receiptUrl) {
-                            imagesService.deleteImage(receiptUrl).catch(console.error);
-                          }
-                          setReceiptUrl('');
-                          setReceiptFile(null);
-                        }}
-                        className="p-1 rounded-lg text-rose-400 hover:text-white hover:bg-rose-500/20 transition-colors"
-                        title={language === 'ar' ? 'حذف الإيصال' : 'Delete Receipt'}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
 
               <div className="flex gap-3 pt-2">
                 <button
@@ -845,7 +864,7 @@ export default function CheckoutPage() {
                       : 'الدفع عند الاستلام'}
                   </span>
                 </div>
-                {receiptUrl && (
+                {paymentMethod !== 'CashOnDelivery' && receiptUrl && (
                   <div className="flex items-center justify-between pt-2 border-t border-[var(--border-subtle)]">
                     <span className="text-[var(--text-secondary)]">{language === 'ar' ? 'سكرينة الإيصال:' : 'Receipt:'}</span>
                     <a
