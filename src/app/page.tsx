@@ -392,7 +392,7 @@ export default function HomePage() {
             <div className="p-6 rounded-2xl bg-[var(--bg-secondary)] border border-[var(--border-subtle)] space-y-3">
               <div className="flex items-center justify-between">
                 <span className="font-serif text-sm font-semibold text-[var(--text-primary)]">إنستاباي (InstaPay)</span>
-                <span className="text-[10px] text-[var(--accent-gold)] font-bold bg-[var(--accent-gold)]/10 px-2 py-0.5 rounded">تحويل لحظي</span>
+                <span className="text-[10px] text-purple-400 font-bold bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">تحويل لحظي</span>
               </div>
               <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
                 {language === 'ar'
@@ -404,7 +404,7 @@ export default function HomePage() {
             <div className="p-6 rounded-2xl bg-[var(--bg-secondary)] border border-[var(--border-subtle)] space-y-3">
               <div className="flex items-center justify-between">
                 <span className="font-serif text-sm font-semibold text-[var(--text-primary)]">فودافون كاش</span>
-                <span className="text-[10px] text-rose-400 font-bold bg-rose-500/10 px-2 py-0.5 rounded">محفظة إلكترونية</span>
+                <span className="text-[10px] text-rose-400 font-bold bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">محفظة إلكترونية</span>
               </div>
               <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
                 {language === 'ar'
@@ -416,7 +416,7 @@ export default function HomePage() {
             <div className="p-6 rounded-2xl bg-[var(--bg-secondary)] border border-[var(--border-subtle)] space-y-3">
               <div className="flex items-center justify-between">
                 <span className="font-serif text-sm font-semibold text-[var(--text-primary)]">الدفع عند الاستلام والمعاينة</span>
-                <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded">حق الفحص</span>
+                <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">حق الفحص</span>
               </div>
               <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
                 {language === 'ar'

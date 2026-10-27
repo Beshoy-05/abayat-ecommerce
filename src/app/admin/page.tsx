@@ -688,7 +688,13 @@ export default function AdminDashboardPage() {
                       {/* Payment Method Badge */}
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-[var(--text-secondary)]">طريقة الدفع:</span>
-                        <span className="text-xs font-bold text-[var(--accent-gold)] bg-[var(--accent-gold)]/10 px-2 py-0.5 rounded border border-[var(--accent-gold)]/20">
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded border ${
+                          order.paymentMethod === 'InstaPay'
+                            ? 'text-purple-400 bg-purple-500/10 border-purple-500/20'
+                            : order.paymentMethod === 'VodafoneCash'
+                            ? 'text-rose-400 bg-rose-500/10 border-rose-500/20'
+                            : 'text-[var(--accent-gold)] bg-[var(--accent-gold)]/10 border-[var(--accent-gold)]/20'
+                        }`}>
                           {order.paymentMethod === 'InstaPay'
                             ? 'إنستاباي (InstaPay)'
                             : order.paymentMethod === 'VodafoneCash'

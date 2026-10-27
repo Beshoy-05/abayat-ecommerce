@@ -532,15 +532,15 @@ export default function CheckoutPage() {
                   onClick={() => setPaymentMethod('InstaPay')}
                   className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
                     paymentMethod === 'InstaPay'
-                      ? 'border-[var(--accent-gold)] bg-[var(--accent-gold)]/10 shadow-md ring-1 ring-[var(--accent-gold)]'
-                      : 'border-[var(--border-subtle)] bg-[var(--bg-secondary)] hover:border-[var(--accent-gold)]/50'
+                      ? 'border-purple-500 bg-purple-500/10 shadow-md ring-1 ring-purple-500'
+                      : 'border-[var(--border-subtle)] bg-[var(--bg-secondary)] hover:border-purple-500/50'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-bold text-xs text-[var(--text-primary)]">إنستاباي (InstaPay)</span>
-                    <Smartphone className="w-4 h-4 text-[var(--accent-gold)]" />
+                    <Smartphone className="w-4 h-4 text-purple-400" />
                   </div>
-                  <span className="text-[10px] text-[var(--accent-gold)] font-medium">Powered by InstaPay</span>
+                  <span className="text-[10px] text-purple-400 font-medium">Powered by InstaPay</span>
                 </div>
 
                 {/* 2. VODAFONE CASH */}
@@ -548,15 +548,15 @@ export default function CheckoutPage() {
                   onClick={() => setPaymentMethod('VodafoneCash')}
                   className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
                     paymentMethod === 'VodafoneCash'
-                      ? 'border-[var(--accent-gold)] bg-[var(--accent-gold)]/10 shadow-md ring-1 ring-[var(--accent-gold)]'
-                      : 'border-[var(--border-subtle)] bg-[var(--bg-secondary)] hover:border-[var(--accent-gold)]/50'
+                      ? 'border-rose-500 bg-rose-500/10 shadow-md ring-1 ring-rose-500'
+                      : 'border-[var(--border-subtle)] bg-[var(--bg-secondary)] hover:border-rose-500/50'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-bold text-xs text-[var(--text-primary)]">فودافون كاش</span>
                     <Smartphone className="w-4 h-4 text-rose-500" />
                   </div>
-                  <span className="text-[10px] text-[var(--text-secondary)]">Vodafone Cash</span>
+                  <span className="text-[10px] text-rose-400">Vodafone Cash</span>
                 </div>
 
                 {/* 3. CASH ON DELIVERY */}
@@ -578,17 +578,17 @@ export default function CheckoutPage() {
 
               {/* PAYMENT DETAILS BOX */}
               {paymentMethod === 'InstaPay' && (
-                <div className="p-5 rounded-2xl bg-[var(--bg-secondary)] border border-[var(--accent-gold)]/30 space-y-4">
+                <div className="p-5 rounded-2xl bg-[var(--bg-secondary)] border border-purple-500/30 space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="font-serif text-sm font-semibold text-[var(--text-primary)]">
                         الدفع عبر تطبيق إنستاباي (InstaPay)
                       </h4>
                       <p className="text-[11px] text-[var(--text-secondary)]">
-                        المبلغ المطلوب تحويله: <span className="font-bold text-[var(--accent-gold)]">{formatPrice(totalWithShipping)}</span>
+                        المبلغ المطلوب تحويله: <span className="font-bold text-purple-400">{formatPrice(totalWithShipping)}</span>
                       </p>
                     </div>
-                    <span className="text-[10px] uppercase font-bold text-[var(--accent-gold)] bg-[var(--accent-gold)]/10 px-2 py-0.5 rounded border border-[var(--accent-gold)]/20">
+                    <span className="text-[10px] uppercase font-bold text-purple-300 bg-purple-500/15 px-2 py-0.5 rounded border border-purple-500/30">
                       Powered by InstaPay
                     </span>
                   </div>
@@ -606,7 +606,7 @@ export default function CheckoutPage() {
                     <button
                       type="button"
                       onClick={() => copyToClipboard('awadallaalashkar@instapay', 'ipa')}
-                      className="px-3 py-1.5 rounded-lg bg-[var(--accent-gold)]/10 hover:bg-[var(--accent-gold)]/20 text-[var(--accent-gold)] text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                      className="px-3 py-1.5 rounded-lg bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 text-xs font-semibold flex items-center gap-1.5 transition-colors border border-purple-500/30"
                     >
                       {copiedText === 'ipa' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                       <span>{copiedText === 'ipa' ? 'تم النسخ' : 'نسخ العنوان'}</span>
@@ -614,7 +614,7 @@ export default function CheckoutPage() {
                   </div>
 
                   {/* Direct Link */}
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 rounded-xl bg-gradient-to-r from-[var(--accent-gold)]/10 to-transparent border border-[var(--accent-gold)]/20">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 rounded-xl bg-gradient-to-r from-purple-500/15 via-purple-500/5 to-transparent border border-purple-500/30">
                     <div className="text-xs text-[var(--text-primary)]">
                       <p className="font-medium">اضغط الرابط لإرسال نقود إلى awadallaalashkar@instapay مباشرة</p>
                     </div>
@@ -622,7 +622,7 @@ export default function CheckoutPage() {
                       href="https://ipn.eg/S/awadallaalashkar/instapay/0XKAPo"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-4 py-2 rounded-full bg-[var(--accent-gold)] text-black font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 hover:brightness-105 transition-all shadow-md shrink-0"
+                      className="px-4 py-2 rounded-full bg-gradient-to-r from-purple-600 to-[#792474] hover:from-purple-500 hover:to-[#8e2b88] text-white font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-md shrink-0 shadow-purple-950/40 hover:brightness-110"
                     >
                       <span>افتح إنستاباي للدفع</span>
                       <ExternalLink className="w-3.5 h-3.5" />
@@ -831,7 +831,13 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[var(--text-secondary)]">{language === 'ar' ? 'طريقة الدفع:' : 'Payment:'}</span>
-                  <span className="font-semibold text-[var(--accent-gold)]">
+                  <span className={`font-semibold ${
+                    paymentMethod === 'InstaPay'
+                      ? 'text-purple-400'
+                      : paymentMethod === 'VodafoneCash'
+                      ? 'text-rose-400'
+                      : 'text-[var(--accent-gold)]'
+                  }`}>
                     {paymentMethod === 'InstaPay'
                       ? 'إنستاباي (InstaPay)'
                       : paymentMethod === 'VodafoneCash'
