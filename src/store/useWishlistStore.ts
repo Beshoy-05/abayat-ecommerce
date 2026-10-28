@@ -27,16 +27,20 @@ export const useWishlistStore = create<WishlistState>()(
       fetchFavorites: async () => {
         try {
           set({ isLoading: true });
-          const products = await favoritesService.getFavorites();
-          const ids = products.map((p) => p.id);
+          const raw = await favoritesService.getFavorites();
+          const products = Array.isArray(raw)
+            ? raw.filter((p, index, self) => p && p.id > 0 && index === self.findIndex((item) => item.id === p.id))
+            : [];
+          const ids = Array.from(new Set(products.map((p) => p.id)));
           set({ wishlistProducts: products, wishlistIds: ids, isLoading: false });
-        } catch {
+        } catch (error) {
+          console.error('[Favorites] Failed to fetch favorites:', error);
           set({ isLoading: false });
         }
       },
 
       toggleFavorite: async (product: Product, isAuthenticated: boolean) => {
-        const currentIds = get().wishlistIds;
+        const currentIds = Array.from(new Set(get().wishlistIds));
         const exists = currentIds.includes(product.id);
 
         if (isAuthenticated) {
@@ -46,7 +50,7 @@ export const useWishlistStore = create<WishlistState>()(
             : [...currentIds, product.id];
           const newProducts = exists
             ? get().wishlistProducts.filter((p) => p.id !== product.id)
-            : [...get().wishlistProducts, product];
+            : [...get().wishlistProducts.filter((p) => p.id !== product.id), product];
 
           set({ wishlistIds: newIds, wishlistProducts: newProducts });
 
@@ -79,7 +83,7 @@ export const useWishlistStore = create<WishlistState>()(
           } else {
             set({
               wishlistIds: [...currentIds, product.id],
-              wishlistProducts: [...get().wishlistProducts, product],
+              wishlistProducts: [...get().wishlistProducts.filter((p) => p.id !== product.id), product],
             });
             return true;
           }

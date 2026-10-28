@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { User, Lock, Trash2, LogOut, ShieldCheck, Check, AlertCircle } from 'lucide-react';
+import { User, Lock, Trash2, LogOut, ShieldCheck, Check, AlertCircle, Package } from 'lucide-react';
 import { accountService } from '@/api/account';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useThemeStore } from '@/store/useThemeStore';
@@ -105,11 +105,19 @@ export default function AccountPage() {
           <p className="text-xs text-[var(--text-secondary)]">{user?.email}</p>
         </div>
 
-        <div className="flex items-center gap-3 self-start">
+        <div className="flex items-center gap-3 self-start flex-wrap">
+          <Link
+            href="/orders"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[var(--accent-gold)] text-black font-bold text-xs shadow-md hover:brightness-105 transition-all"
+          >
+            <Package className="w-3.5 h-3.5" />
+            <span>{language === 'ar' ? 'سجل طلباتي (My Orders)' : 'My Orders'}</span>
+          </Link>
+
           {isAdmin && (
             <Link
               href="/admin"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[var(--accent-gold)] text-black font-bold text-xs shadow-md hover:brightness-105 transition-all"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[var(--bg-secondary)] border border-[var(--accent-gold)]/40 text-[var(--accent-gold)] font-bold text-xs shadow-sm hover:bg-[var(--accent-gold)]/10 transition-all"
             >
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>لوحة الإدارة (Admin)</span>

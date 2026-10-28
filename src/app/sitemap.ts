@@ -1,93 +1,140 @@
-import { MetadataRoute } from 'next';
+
+import type { MetadataRoute } from 'next';
 import { productsService } from '@/api/products';
 import { categoriesService } from '@/api/categories';
 
-export const revalidate = 3600; // Cache dynamic sitemap for 1 hour on Vercel CDN
+export const revalidate = 300; // Revalidate sitemap every 5 minutes
+
+const BASE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, '') ||
+  'https://qasr-alabaya.vercel.app';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://qasr-alabaya.vercel.app';
-  const currentDate = new Date();
+  const now = new Date();
 
   const staticRoutes: MetadataRoute.Sitemap = [
     {
-      url: `${baseUrl}`,
-      lastModified: currentDate,
+      url: `${BASE_URL}/`,
+      lastModified: now,
       changeFrequency: 'daily',
-      priority: 1.0,
+      priority: 1,
     },
     {
-      url: `${baseUrl}/shop`,
-      lastModified: currentDate,
+      url: `${BASE_URL}/shop`,
+      lastModified: now,
       changeFrequency: 'daily',
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/about`,
-      lastModified: currentDate,
+      url: `${BASE_URL}/about`,
+      lastModified: now,
       changeFrequency: 'monthly',
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/contact`,
-      lastModified: currentDate,
+      url: `${BASE_URL}/contact`,
+      lastModified: now,
       changeFrequency: 'monthly',
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/shipping`,
-      lastModified: currentDate,
+      url: `${BASE_URL}/shipping`,
+      lastModified: now,
       changeFrequency: 'monthly',
       priority: 0.7,
     },
     {
-      url: `${baseUrl}/returns`,
-      lastModified: currentDate,
+      url: `${BASE_URL}/returns`,
+      lastModified: now,
       changeFrequency: 'monthly',
       priority: 0.7,
     },
     {
-      url: `${baseUrl}/terms`,
-      lastModified: currentDate,
+      url: `${BASE_URL}/terms`,
+      lastModified: now,
       changeFrequency: 'yearly',
       priority: 0.5,
     },
     {
-      url: `${baseUrl}/privacy`,
-      lastModified: currentDate,
+      url: `${BASE_URL}/privacy`,
+      lastModified: now,
       changeFrequency: 'yearly',
       priority: 0.5,
     },
   ];
 
-  try {
-    const [productsRes, categoriesRes] = await Promise.allSettled([
-      productsService.getProducts({ pageSize: 500 }),
-      categoriesService.getCategories(),
-    ]);
+  const [productsResult, categoriesResult] = await Promise.allSettled([
+    productsService.getProducts({ pageSize: 500 }),
+    categoriesService.getCategories(),
+  ]);
 
-    const productUrls: MetadataRoute.Sitemap =
-      productsRes.status === 'fulfilled' && productsRes.value?.data
-        ? productsRes.value.data.map((p) => ({
-            url: `${baseUrl}/product/${p.id}`,
-            lastModified: currentDate,
-            changeFrequency: 'daily',
-            priority: 0.9,
-          }))
-        : [];
+  let productUrls: MetadataRoute.Sitemap = [];
+  let categoryUrls: MetadataRoute.Sitemap = [];
 
-    const categoryUrls: MetadataRoute.Sitemap =
-      categoriesRes.status === 'fulfilled' && categoriesRes.value
-        ? categoriesRes.value.map((c) => ({
-            url: `${baseUrl}/shop?categoryId=${c.id}`,
-            lastModified: currentDate,
-            changeFrequency: 'weekly',
-            priority: 0.8,
-          }))
-        : [];
+  if (productsResult.status === 'fulfilled') {
+    const products = productsResult.value?.data;
 
-    return [...staticRoutes, ...productUrls, ...categoryUrls];
-  } catch (err) {
-    console.error('Error generating sitemap:', err);
-    return staticRoutes;
+    if (Array.isArray(products)) {
+      productUrls = products
+        .filter((product) => product?.id != null)
+        .map((product) => ({
+          url: `${BASE_URL}/product/${product.id}`,
+          lastModified: now,
+          changeFrequency: 'weekly' as const,
+          priority: 0.9,
+        }));
+
+      console.info(
+        `[Sitemap] Generated ${productUrls.length} product URLs.`,
+      );
+    } else {
+      console.error(
+        '[Sitemap] Products API returned an unexpected response.',
+      );
+    }
+  } else {
+    console.error(
+      '[Sitemap] Failed to fetch products:',
+      productsResult.reason,
+    );
   }
+
+  if (categoriesResult.status === 'fulfilled') {
+    const categories = categoriesResult.value;
+
+    if (Array.isArray(categories)) {
+      categoryUrls = categories
+        .filter((category) => category?.id != null)
+        .map((category) => ({
+          url: `${BASE_URL}/shop?categoryId=${category.id}`,
+          lastModified: now,
+          changeFrequency: 'weekly' as const,
+          priority: 0.8,
+        }));
+    } else {
+      console.error(
+        '[Sitemap] Categories API returned an unexpected response.',
+      );
+    }
+  } else {
+    console.error(
+      '[Sitemap] Failed to fetch categories:',
+      categoriesResult.reason,
+    );
+  }
+
+  const allUrls = [
+    ...staticRoutes,
+    ...productUrls,
+    ...categoryUrls,
+  ];
+
+  // Avoid duplicate URLs.
+  const uniqueUrls = Array.from(
+    new Map(allUrls.map((item) => [item.url, item])).values(),
+  );
+
+  console.info(`[Sitemap] Total URLs: ${uniqueUrls.length}`);
+
+  return uniqueUrls;
 }

@@ -123,13 +123,26 @@ export interface Order {
   deliveryMethodId?: number;
   paymentMethod: string;
   paymentReceiptUrl?: string | null;
-  status: 'Pending' | 'PaymentReceived' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled' | string;
+  status:
+    | 'Pending'
+    | 'Approved'
+    | 'PaymentReceived'
+    | 'Processing'
+    | 'Shipped'
+    | 'Delivered'
+    | 'Completed'
+    | 'Cancelled'
+    | 'Rejected'
+    | 'Expired'
+    | string;
   items?: OrderItem[];
   orderItems?: OrderItem[];
   subtotal?: number;
   totalAmount?: number;
   total?: number;
   comments?: string;
+  cancellationReason?: string | null;
+  customerId?: number;
 }
 
 export interface CreateOrderPayload {

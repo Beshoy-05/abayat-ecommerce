@@ -42,6 +42,7 @@ import { deliveryService } from '@/api/delivery';
 import { customersService } from '@/api/customers';
 import { imagesService } from '@/api/images';
 import { Order, Product, Category, DeliveryMethod, CustomerDto } from '@/types/api';
+import { parseApiError } from '@/api/client';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useThemeStore } from '@/store/useThemeStore';
 import ShimmerBadge from '@/components/ui/ShimmerBadge';
@@ -121,10 +122,11 @@ export default function AdminDashboardPage() {
 
   // 1. ORDERS STATE
   const [orders, setOrders] = useState<Order[]>([]);
-  const [orderFilter, setOrderFilter] = useState<'ALL' | 'Pending' | 'Approved' | 'Cancelled'>('ALL');
+  const [orderFilter, setOrderFilter] = useState<'ALL' | 'Pending' | 'Approved' | 'Cancelled' | 'Rejected'>('ALL');
   const [activeReceiptModalUrl, setActiveReceiptModalUrl] = useState<string | null>(null);
   const [cancelModalOrder, setCancelModalOrder] = useState<Order | null>(null);
   const [cancelReason, setCancelReason] = useState('');
+  const [modalAction, setModalAction] = useState<'cancel' | 'reject'>('cancel');
 
   // 2. PRODUCTS STATE
   const [products, setProducts] = useState<Product[]>([]);
@@ -240,34 +242,41 @@ export default function AdminDashboardPage() {
   }, [activeTab]);
 
   // ---------------- ORDER ACTIONS ----------------
-  // Approve Order -> Deducts Inventory on Backend
+  // Approve Order -> Backend checks status != Approved/Cancelled/Rejected/Expired
   const handleApproveOrder = async (orderId: number) => {
     try {
       setLoading(true);
       await ordersService.approveOrder(orderId);
-      showToast('success', `تم اعتماد الطلب #${orderId} وخصم الكميات من المخزون بنجاح!`);
+      showToast('success', `تم اعتماد الطلب #${orderId} بنجاح!`);
       await loadOrders();
     } catch (err: any) {
       console.error(err);
-      showToast('error', err.response?.data?.message || 'تعذر اعتماد الطلب');
+      showToast('error', parseApiError(err));
     } finally {
       setLoading(false);
     }
   };
 
-  // Cancel Order -> Returns Inventory on Backend
+  // Cancel or Reject Order -> Restores Stock Quantities on Backend
   const handleConfirmCancelOrder = async () => {
     if (!cancelModalOrder) return;
     try {
       setLoading(true);
-      await ordersService.cancelOrder(cancelModalOrder.id, cancelReason || 'إلغاء بواسطة الإدارة');
-      showToast('success', `تم إلغاء الطلب #${cancelModalOrder.id} وإرجاع القطع للمخزون!`);
+      if (modalAction === 'reject') {
+        const reason = cancelReason.trim() || 'رفض الطلب بواسطة الإدارة (reject)';
+        await ordersService.rejectOrder(cancelModalOrder.id, reason);
+        showToast('success', `تم رفض الطلب #${cancelModalOrder.id} وإرجاع القطع للمخزون!`);
+      } else {
+        const reason = cancelReason.trim() || 'إلغاء بواسطة الإدارة';
+        await ordersService.cancelOrder(cancelModalOrder.id, reason);
+        showToast('success', `تم إلغاء الطلب #${cancelModalOrder.id} وإرجاع القطع للمخزون!`);
+      }
       setCancelModalOrder(null);
       setCancelReason('');
       await loadOrders();
     } catch (err: any) {
       console.error(err);
-      showToast('error', err.response?.data?.message || 'تعذر إلغاء الطلب');
+      showToast('error', parseApiError(err));
     } finally {
       setLoading(false);
     }
@@ -441,7 +450,23 @@ export default function AdminDashboardPage() {
   // Filtered orders
   const filteredOrders = orders.filter((o) => {
     if (orderFilter === 'ALL') return true;
-    return o.status === orderFilter;
+    const s = o.status?.toLowerCase().replace(/[\s_-]/g, '') || '';
+    if (orderFilter === 'Pending') {
+      return (
+        s.includes('pending') ||
+        !['approved', 'paymentreceived', 'cancelled', 'rejected', 'expired', 'completed', 'delivered'].includes(s)
+      );
+    }
+    if (orderFilter === 'Approved') {
+      return s === 'approved' || s === 'paymentreceived';
+    }
+    if (orderFilter === 'Cancelled') {
+      return s === 'cancelled';
+    }
+    if (orderFilter === 'Rejected') {
+      return s === 'rejected';
+    }
+    return false;
   });
 
   if (!authLoading && (!isAuthenticated || !isAdmin)) {
@@ -624,6 +649,7 @@ export default function AdminDashboardPage() {
                 { id: 'Pending', label: 'قيد المراجعة (Pending)' },
                 { id: 'Approved', label: 'معتمدة (Approved)' },
                 { id: 'Cancelled', label: 'ملغية (Cancelled)' },
+                { id: 'Rejected', label: 'مرفوضة (Rejected)' },
               ].map((f) => (
                 <button
                   key={f.id}
@@ -653,9 +679,18 @@ export default function AdminDashboardPage() {
           ) : (
             <div className="space-y-4">
               {filteredOrders.map((order) => {
-                const isPending = order.status === 'Pending';
-                const isApproved = order.status === 'Approved' || order.status === 'PaymentReceived';
-                const isCancelled = order.status === 'Cancelled';
+                const s = order.status?.toLowerCase().replace(/[\s_-]/g, '') || '';
+                const isApproved = s === 'approved' || s === 'paymentreceived';
+                const isCancelled = s === 'cancelled';
+                const isRejected = s === 'rejected';
+                const isExpired = s === 'expired';
+                const isCompleted = s === 'completed' || s === 'delivered';
+                const isPending = s.includes('pending') || (!isApproved && !isCancelled && !isRejected && !isExpired && !isCompleted);
+
+                // Backend capability checks
+                const canApprove = !isApproved && !isCancelled && !isRejected && !isExpired && !isCompleted;
+                const canCancel = !isCancelled && !isRejected && !isExpired && !isCompleted;
+                const canReject = !isApproved && !isCancelled && !isRejected && !isExpired && !isCompleted;
 
                 return (
                   <div
@@ -674,10 +709,16 @@ export default function AdminDashboardPage() {
                         {/* Status Badge */}
                         <span
                           className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
-                            isPending
-                              ? 'bg-amber-500/10 text-amber-300 border border-amber-500/30'
-                              : isApproved
+                            isApproved
                               ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                              : isPending
+                              ? 'bg-amber-500/10 text-amber-300 border border-amber-500/30'
+                              : isRejected
+                              ? 'bg-red-500/20 text-red-300 border border-red-500/40'
+                              : isCompleted
+                              ? 'bg-teal-500/10 text-teal-400 border border-teal-500/30'
+                              : isExpired
+                              ? 'bg-zinc-500/15 text-zinc-400 border border-zinc-500/30'
                               : 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
                           }`}
                         >
@@ -776,50 +817,75 @@ export default function AdminDashboardPage() {
                       </div>
                     </div>
 
-                    {/* Bottom Actions Row: Approve & Cancel */}
+                    {/* Cancellation or Rejection Reason Banner */}
+                    {order.cancellationReason && (
+                      <div className="p-3 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-300 flex items-start gap-2.5">
+                        <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
+                        <div>
+                          <span className="font-bold text-[11px] uppercase tracking-wider block text-rose-400">
+                            {isRejected ? 'سبب رفض الطلب:' : 'سبب الإلغاء:'}
+                          </span>
+                          <span className="text-[12px] text-[var(--text-primary)]">
+                            {order.cancellationReason}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Bottom Actions Row: Approve & Cancel/Reject */}
                     <div className="pt-3 border-t border-[var(--border-subtle)] flex flex-wrap items-center justify-between gap-3">
                       <div className="text-[11px] text-[var(--text-secondary)]">
-                        {isPending && '⚠️ هذا الطلب قيد المراجعة. تأكد من صحة إيصال التحويل قبل الاعتماد.'}
-                        {isApproved && '✓ تم اعتماد هذا الطلب وخصم القطع من المخزون بنجاح.'}
+                        {canApprove && '⚠️ هذا الطلب بانتظار الاعتماد. تأكد من صحة إيصال التحويل قبل الموافقة.'}
+                        {isApproved && '✓ تم اعتماد هذا الطلب بنجاح.'}
                         {isCancelled && '✕ تم إلغاء هذا الطلب وإرجاع القطع للمخزون.'}
+                        {isRejected && '✕ تم رفض هذا الطلب وإرجاع القطع للمخزون.'}
+                        {isCompleted && '✓ تم تسليم الطلب للعميل بنجاح (مكتمل).'}
+                        {isExpired && '⌛ انتهت صلاحية هذا الطلب.'}
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        {isPending && (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => handleApproveOrder(order.id)}
-                              className="px-5 py-2 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs flex items-center gap-1.5 transition-all shadow-md"
-                            >
-                              <CheckCircle2 className="w-4 h-4" />
-                              <span>موافقة وخصم من المخزون</span>
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setCancelModalOrder(order);
-                                setCancelReason('');
-                              }}
-                              className="px-4 py-2 rounded-full bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-semibold flex items-center gap-1.5 transition-all"
-                            >
-                              <XCircle className="w-4 h-4" />
-                              <span>إلغاء وإرجاع للمخزون</span>
-                            </button>
-                          </>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {canApprove && (
+                          <button
+                            type="button"
+                            onClick={() => handleApproveOrder(order.id)}
+                            className="px-5 py-2 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs flex items-center gap-1.5 transition-all shadow-md"
+                          >
+                            <CheckCircle2 className="w-4 h-4" />
+                            <span>اعتماد الطلب</span>
+                          </button>
                         )}
 
-                        {isApproved && (
+                        {canReject && (
                           <button
                             type="button"
                             onClick={() => {
                               setCancelModalOrder(order);
+                              setModalAction('reject');
                               setCancelReason('');
                             }}
-                            className="px-3 py-1.5 rounded-full border border-rose-500/30 text-rose-400 text-xs hover:bg-rose-500/10 transition-colors"
+                            className="px-4 py-2 rounded-full bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/40 text-xs font-semibold flex items-center gap-1.5 transition-all"
                           >
-                            إلغاء الطلب المعتمد وإرجاع الكميات
+                            <XCircle className="w-4 h-4" />
+                            <span>رفض الطلب</span>
+                          </button>
+                        )}
+
+                        {canCancel && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCancelModalOrder(order);
+                              setModalAction('cancel');
+                              setCancelReason('');
+                            }}
+                            className={`px-4 py-2 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                              isApproved
+                                ? 'border border-rose-500/30 text-rose-400 hover:bg-rose-500/10'
+                                : 'bg-[var(--bg-secondary)] hover:bg-[var(--border-subtle)] text-[var(--text-secondary)] border border-[var(--border-subtle)]'
+                            }`}
+                          >
+                            <X className="w-4 h-4" />
+                            <span>{isApproved ? 'إلغاء الطلب المعتمد وإرجاع الكميات للمخزون' : 'إلغاء الطلب'}</span>
                           </button>
                         )}
                       </div>
@@ -1433,23 +1499,71 @@ export default function AdminDashboardPage() {
       )}
 
       {/* ============================================================== */}
-      {/* MODAL: CANCEL ORDER REASON PROMPT */}
+      {/* MODAL: CANCEL OR REJECT ORDER REASON PROMPT */}
       {/* ============================================================== */}
       {cancelModalOrder && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-            <h3 className="font-serif text-lg font-semibold text-[var(--text-primary)]">
-              إلغاء الطلب #{cancelModalOrder.id} وإرجاع المخزون
-            </h3>
+          <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl animate-fade-in">
+            <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
+              <h3 className="font-serif text-lg font-bold text-[var(--text-primary)]">
+                {modalAction === 'reject'
+                  ? `رفض الطلب #${cancelModalOrder.id} وإرجاع المخزون`
+                  : `إلغاء الطلب #${cancelModalOrder.id} وإرجاع المخزون`}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setCancelModalOrder(null)}
+                className="p-1 rounded-full text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
             <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-              عند الإلغاء، سيتم إرجاع جميع كميات القطع إلى المخزون تلقائياً على السيرفر. يرجى توضيح سبب الإلغاء (مثال: عدم صحة التحويل، رفض العميل، إلخ):
+              {modalAction === 'reject'
+                ? 'سيتم تسجيل الطلب كـ (مرفوض - Rejected) وإرجاع جميع كميات القطع إلى المخزون تلقائياً على السيرفر. حدد سبب الرفض لتوضيحه للعميل:'
+                : 'سيتم تغيير حالة الطلب إلى (ملغي - Cancelled) وإرجاع جميع كميات القطع إلى المخزون تلقائياً على السيرفر. حدد سبب الإلغاء:'}
             </p>
+
+            {/* Quick Reason Presets */}
+            <div className="flex flex-wrap gap-2">
+              {(modalAction === 'reject'
+                ? [
+                    'إيصال التحويل غير صالح أو غير مكتمل',
+                    'العميل لم يستجب لتأكيد الطلب',
+                    'بيانات الشحن أو العنوان غير صحيحة',
+                    'نفاد مقاس القطعة في المشغل',
+                  ]
+                : [
+                    'إلغاء بناءً على رغبة العميل',
+                    'طلب مكرر من العميل',
+                    'تعديل تفاصيل الشحن أو المنتجات',
+                  ]
+              ).map((preset) => (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => setCancelReason(preset)}
+                  className={`px-3 py-1.5 rounded-xl text-xs transition-colors ${
+                    cancelReason === preset
+                      ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 font-semibold'
+                      : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] border border-[var(--border-subtle)] hover:text-[var(--text-primary)]'
+                  }`}
+                >
+                  {preset}
+                </button>
+              ))}
+            </div>
 
             <textarea
               rows={3}
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
-              placeholder="اكتب سبب إلغاء الطلب هنا..."
+              placeholder={
+                modalAction === 'reject'
+                  ? 'اكتب سبب رفض الطلب هنا ليظهر للعميل...'
+                  : 'اكتب سبب إلغاء الطلب هنا...'
+              }
               className="w-full bg-[var(--bg-secondary)] border border-[var(--border-subtle)] focus:border-rose-500 rounded-xl p-3 text-xs text-[var(--text-primary)] focus:outline-none"
             />
 
@@ -1465,9 +1579,13 @@ export default function AdminDashboardPage() {
                 type="button"
                 disabled={loading}
                 onClick={handleConfirmCancelOrder}
-                className="flex-1 py-2.5 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs shadow-lg transition-colors"
+                className={`flex-1 py-2.5 rounded-full font-bold text-xs shadow-lg transition-colors flex items-center justify-center gap-2 ${
+                  modalAction === 'reject'
+                    ? 'bg-red-500 hover:bg-red-600 text-white'
+                    : 'bg-rose-500 hover:bg-rose-600 text-white'
+                }`}
               >
-                تأكيد الإلغاء واسترجاع المخزون
+                {modalAction === 'reject' ? 'تأكيد الرفض واسترجاع المخزون' : 'تأكيد الإلغاء واسترجاع المخزون'}
               </button>
             </div>
           </div>

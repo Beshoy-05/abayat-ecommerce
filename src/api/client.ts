@@ -71,18 +71,30 @@ export const parseApiError = (error: unknown): string => {
       if (Array.isArray(data.errors) && data.errors.length > 0) {
         return data.errors.join(' ');
       }
-      if (typeof data.message === 'string') {
+      if (typeof data.message === 'string' && data.message.trim().length > 0) {
         return data.message;
       }
-      if (typeof data.title === 'string') {
+      if (typeof data.error === 'string' && data.error.trim().length > 0) {
+        return data.error;
+      }
+      if (typeof data.detail === 'string' && data.detail.trim().length > 0) {
+        return data.detail;
+      }
+      if (typeof data.title === 'string' && data.title.trim().length > 0) {
         return data.title;
       }
-      if (typeof data === 'string') {
+      if (typeof data === 'string' && data.trim().length > 0) {
         return data;
       }
     }
+    if (error.response?.status === 403) {
+      return 'ليس لديك الصلاحية لتنفيذ هذا الإجراء (Unauthorized / 403).';
+    }
+    if (error.response?.status === 404) {
+      return 'الطلب غير موجود في النظام (Not Found / 404).';
+    }
     if (error.response?.status === 409) {
-      return 'You have already submitted a review for this haute couture piece.';
+      return 'حدث تعارض في البيانات أثناء تحديث المخزون (Concurrency Conflict / 409). يرجى إعادة المحاولة.';
     }
     if (error.response?.status === 429) {
       return 'High demand detected: You have reached the rate limit (10 req/min). Please try again in 1 minute.';

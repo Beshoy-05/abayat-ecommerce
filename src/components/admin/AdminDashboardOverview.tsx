@@ -877,7 +877,7 @@ export default function AdminDashboardOverview({
                     >
                       {order.status === 'Approved' ? (
                         <CheckCircle2 className="w-4 h-4" />
-                      ) : order.status === 'Cancelled' ? (
+                      ) : order.status === 'Cancelled' || order.status === 'Rejected' ? (
                         <XCircle className="w-4 h-4" />
                       ) : (
                         <Clock className="w-4 h-4" />
@@ -922,6 +922,8 @@ export default function AdminDashboardOverview({
                           ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
                           : order.status === 'Cancelled'
                           ? 'bg-rose-500/15 text-rose-300 border border-rose-500/30'
+                          : order.status === 'Rejected'
+                          ? 'bg-red-500/20 text-red-300 border border-red-500/40'
                           : 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
                       }`}
                     >

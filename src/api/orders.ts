@@ -33,25 +33,26 @@ export const ordersService = {
 
   // GET /api/Orders/all (Admin only: returns PaginatedList<OrderDto>)
   getAllOrders: async (pageIndex = 1, pageSize = 20): Promise<{ data: Order[]; totalCount: number; totalPages: number }> => {
-    let res: any;
+    let res: { data: unknown };
     try {
-      res = await apiClient.get<any>(`/api/Orders/all?pageIndex=${pageIndex}&pageSize=${pageSize}`);
+      res = await apiClient.get<unknown>(`/api/Orders/all?pageIndex=${pageIndex}&pageSize=${pageSize}`);
     } catch {
       // Fallback in case endpoint was routed without /all
-      res = await apiClient.get<any>(`/api/Orders?pageIndex=${pageIndex}&pageSize=${pageSize}`);
+      res = await apiClient.get<unknown>(`/api/Orders?pageIndex=${pageIndex}&pageSize=${pageSize}`);
     }
     // Handle both PaginatedList format and direct array
-    if (res.data && Array.isArray(res.data.data)) {
+    const responseData = res.data as { data?: Order[]; totalCount?: number; totalPages?: number } | Order[];
+    if (responseData && typeof responseData === 'object' && 'data' in responseData && Array.isArray(responseData.data)) {
       return {
-        data: res.data.data,
-        totalCount: res.data.totalCount || res.data.data.length,
-        totalPages: res.data.totalPages || 1,
+        data: responseData.data,
+        totalCount: responseData.totalCount || responseData.data.length,
+        totalPages: responseData.totalPages || 1,
       };
     }
-    if (Array.isArray(res.data)) {
+    if (Array.isArray(responseData)) {
       return {
-        data: res.data,
-        totalCount: res.data.length,
+        data: responseData,
+        totalCount: responseData.length,
         totalPages: 1,
       };
     }
@@ -66,6 +67,15 @@ export const ordersService = {
   // PUT /api/Orders/{id}/cancel
   cancelOrder: async (id: number | string, reason?: string): Promise<void> => {
     await apiClient.put(`/api/Orders/${id}/cancel`, { reason });
+  },
+
+  // PUT /api/Orders/{id}/cancel (Admin Rejection - triggers backend isRejected = true)
+  rejectOrder: async (id: number | string, reason?: string): Promise<void> => {
+    const rawReason = reason?.trim() || 'رفض الطلب بواسطة الإدارة';
+    const formattedReason = rawReason.toLowerCase().includes('reject')
+      ? rawReason
+      : `${rawReason} (reject)`;
+    await apiClient.put(`/api/Orders/${id}/cancel`, { reason: formattedReason });
   },
 };
 

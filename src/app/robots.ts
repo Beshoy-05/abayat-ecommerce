@@ -1,8 +1,12 @@
-import { MetadataRoute } from 'next';
+
+import type { MetadataRoute } from 'next';
+
+const BASE_URL = (
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  'https://qasr-alabaya.vercel.app'
+).replace(/\/+$/, '');
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://qasr-alabaya.vercel.app';
-
   return {
     rules: [
       {
@@ -37,10 +41,13 @@ export default function robots(): MetadataRoute.Robots {
       },
       {
         userAgent: 'Googlebot-Image',
-        allow: ['/images/', '/_next/image/', '/api/images/'],
+        allow: [
+          '/images/',
+          '/_next/image',
+          '/api/images/',
+        ],
       },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
-    host: baseUrl,
+    sitemap: `${BASE_URL}/sitemap.xml`,
   };
 }

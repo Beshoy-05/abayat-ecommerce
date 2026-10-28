@@ -167,6 +167,11 @@ export default function LuxuryFooter() {
             </h4>
             <ul className="space-y-2.5 text-sm">
               <li>
+                <Link href="/orders" className="hover:text-[var(--accent-gold)] transition-colors">
+                  {language === 'ar' ? 'متابعة سجل طلباتي' : 'Track My Orders'}
+                </Link>
+              </li>
+              <li>
                 <Link href="/shipping" className="hover:text-[var(--accent-gold)] transition-colors">
                   {language === 'ar' ? 'الشحن والتوصيل' : 'Shipping & White-Glove'}
                 </Link>

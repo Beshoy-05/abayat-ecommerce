@@ -15,6 +15,7 @@ import {
   Globe,
   Sparkles,
   ShieldCheck,
+  Package,
 } from 'lucide-react';
 import { useThemeStore, CURRENCY_RATES } from '@/store/useThemeStore';
 import { useCartStore } from '@/store/useCartStore';
@@ -30,7 +31,7 @@ export default function LuxuryHeader() {
   const pathname = usePathname();
   const { theme, toggleTheme, language, toggleLanguage, currency, setCurrency } = useThemeStore();
   const { getItemsCount, openCart } = useCartStore();
-  const { wishlistIds } = useWishlistStore();
+  const { wishlistIds, fetchFavorites } = useWishlistStore();
   const { isAuthenticated, isAdmin, loadFromStorage } = useAuthStore();
   const { settings, fetchSettings } = useSiteSettingsStore();
   const [mounted, setMounted] = useState(false);
@@ -48,12 +49,15 @@ export default function LuxuryHeader() {
     setMounted(true);
     loadFromStorage();
     fetchSettings();
+    if (typeof window !== 'undefined' && localStorage.getItem('abaya_auth_token')) {
+      fetchFavorites();
+    }
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [loadFromStorage, fetchSettings]);
+  }, [loadFromStorage, fetchSettings, fetchFavorites]);
 
   // Dynamic Browser Tab / Page Title based on Admin Store Name
   useEffect(() => {
@@ -114,6 +118,7 @@ export default function LuxuryHeader() {
     { href: '/', label: t.nav.home },
     { href: '/shop', label: t.nav.shop },
     { href: `/shop?color=${encodeURIComponent('أسود ملكي')}`, label: t.nav.occasions },
+    { href: '/orders', label: t.nav.orders },
     { href: '/about', label: t.nav.heritage },
     { href: '/contact', label: t.nav.contact },
   ];
@@ -288,6 +293,16 @@ export default function LuxuryHeader() {
                 </motion.span>
               )}
             </AnimatePresence>
+          </Link>
+
+          {/* My Orders Quick Icon */}
+          <Link
+            href="/orders"
+            className="p-2 text-[var(--text-primary)] hover:text-[var(--accent-gold)] transition-colors hidden sm:block relative"
+            title={language === 'ar' ? 'سجل طلباتي' : 'My Orders'}
+            aria-label="My Orders"
+          >
+            <Package className="w-5 h-5" />
           </Link>
 
           {/* Account Profile / Login */}
