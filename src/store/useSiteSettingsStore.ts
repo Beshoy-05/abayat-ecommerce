@@ -2,13 +2,13 @@ import { create } from 'zustand';
 import { SiteSettingDto } from '@/types/api';
 import { settingsService } from '@/api/settings';
 
-const DEFAULT_HERO = {
-  heroBadge: 'كوتور فاخر 2026/2027',
-  heroTitle: 'حرير ياباني ملكي وتطريز يدوي فاخر',
+export const DEFAULT_HERO = {
+  heroBadge: 'عبايات فاخرة 2026/2027',
+  heroTitle: 'حرير ملكي وتطريز يدوي فاخر',
   heroSubtitle:
     'عبايات منسوجة من أرقى أقمشة الكريب والحرير الإيطالي الخالص، مطرزة بخيوط القصب والذهب لأصحاب الذوق الرفيع في مصر والشرق الأوسط.',
   heroImageUrl:
-    'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=1000&q=85',
+    'https://res.cloudinary.com/moak0zto/image/upload/v1793297270/abaya-ecommerce/abaya-ecommerce/gemini_generated_image_d62vsad62vsad62v_20261029180749_5632cdf3405a4526b12db33781450085.jpg',
   heroCardTag: 'تشكيلة الموسم',
   heroCardTitle: 'عباية الحرير الملكي المطرزة',
 };

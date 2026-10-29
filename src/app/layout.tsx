@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Playfair_Display, Plus_Jakarta_Sans, Cormorant_Garamond, Cairo, Amiri } from 'next/font/google';
+import { Playfair_Display, Plus_Jakarta_Sans, Cairo, Amiri } from 'next/font/google';
 import './globals.css';
 import QueryProvider from '@/providers/QueryProvider';
 import LenisProvider from '@/providers/LenisProvider';
@@ -18,13 +18,6 @@ const playfair = Playfair_Display({
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
   variable: '--font-body',
-  display: 'swap',
-});
-
-const cormorant = Cormorant_Garamond({
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
-  variable: '--font-cormorant',
   display: 'swap',
 });
 
@@ -208,9 +201,11 @@ export default function RootLayout({
       lang="ar"
       dir="rtl"
       suppressHydrationWarning
-      className={`dark ${playfair.variable} ${plusJakarta.variable} ${cormorant.variable} ${cairo.variable} ${amiri.variable}`}
+      className={`dark ${playfair.variable} ${plusJakarta.variable} ${cairo.variable} ${amiri.variable}`}
     >
       <head>
+        <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(enterpriseSchema) }}

@@ -11,7 +11,13 @@ export default function LenisProvider({ children }: { children: React.ReactNode 
   const lenisRef = useRef<Lenis | null>(null);
 
   useEffect(() => {
-    // Initialize Lenis smooth scroll
+    // Disable smooth scroll on touch devices to ensure native 120Hz/60Hz mobile scrolling and 0 CPU load
+    const isTouch = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+    if (isTouch) {
+      return;
+    }
+
+    // Initialize Lenis smooth scroll for Desktop
     const lenis = new Lenis({
       duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -19,7 +25,6 @@ export default function LenisProvider({ children }: { children: React.ReactNode 
       gestureOrientation: 'vertical',
       smoothWheel: true,
       wheelMultiplier: 1,
-      touchMultiplier: 2,
     });
 
     lenisRef.current = lenis;

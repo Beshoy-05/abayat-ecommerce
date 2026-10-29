@@ -18,7 +18,7 @@ import { productsService } from '@/api/products';
 import { categoriesService } from '@/api/categories';
 import { Product, Category } from '@/types/api';
 import { useThemeStore } from '@/store/useThemeStore';
-import { useSiteSettingsStore } from '@/store/useSiteSettingsStore';
+import { useSiteSettingsStore, DEFAULT_HERO } from '@/store/useSiteSettingsStore';
 import { translations } from '@/utils/translations';
 import ProductCard from '@/components/ui/ProductCard';
 import ShimmerBadge from '@/components/ui/ShimmerBadge';
@@ -47,21 +47,18 @@ export default function HomePage() {
   }, [fetchSettings]);
 
   useEffect(() => {
-    // GSAP Hero Entrance Timeline
+    // GSAP Hero Entrance Timeline (subtle transform without opacity:0 to preserve instant FCP/LCP)
     const ctx = gsap.context(() => {
       gsap.from(heroTitleRef.current, {
-        opacity: 0,
-        y: 40,
-        duration: 1.2,
-        ease: 'power3.out',
-        delay: 0.2,
+        y: 20,
+        duration: 0.8,
+        ease: 'power2.out',
       });
       gsap.from(heroSubRef.current, {
-        opacity: 0,
-        y: 30,
-        duration: 1.2,
-        ease: 'power3.out',
-        delay: 0.4,
+        y: 15,
+        duration: 0.8,
+        ease: 'power2.out',
+        delay: 0.1,
       });
     }, heroRef);
 
@@ -111,18 +108,12 @@ export default function HomePage() {
     },
   ];
 
-  const currentBadge = mounted ? (settings.heroBadge || t.hero.badge) : t.hero.badge;
-  const currentTitle = mounted ? (settings.heroTitle || t.hero.title) : t.hero.title;
-  const currentSubtitle = mounted ? (settings.heroSubtitle || t.hero.subtitle) : t.hero.subtitle;
-  const currentImageUrl = mounted
-    ? (settings.heroImageUrl || "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=1000&q=85")
-    : "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=1000&q=85";
-  const currentCardTag = mounted
-    ? (settings.heroCardTag || (language === 'ar' ? 'تشكيلة الموسم' : 'Runway Piece'))
-    : (language === 'ar' ? 'تشكيلة الموسم' : 'Runway Piece');
-  const currentCardTitle = mounted
-    ? (settings.heroCardTitle || (language === 'ar' ? 'عباية الحرير الملكي المطرزة' : 'Royal Embroidered Silk Abaya'))
-    : (language === 'ar' ? 'عباية الحرير الملكي المطرزة' : 'Royal Embroidered Silk Abaya');
+  const currentBadge = settings.heroBadge || DEFAULT_HERO.heroBadge;
+  const currentTitle = settings.heroTitle || DEFAULT_HERO.heroTitle;
+  const currentSubtitle = settings.heroSubtitle || DEFAULT_HERO.heroSubtitle;
+  const currentImageUrl = settings.heroImageUrl || DEFAULT_HERO.heroImageUrl;
+  const currentCardTag = settings.heroCardTag || DEFAULT_HERO.heroCardTag;
+  const currentCardTitle = settings.heroCardTitle || DEFAULT_HERO.heroCardTitle;
 
   return (
     <div className="space-y-24 sm:space-y-32">
@@ -213,7 +204,7 @@ export default function HomePage() {
                   alt={currentTitle}
                   fill
                   priority
-                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  sizes="(max-width: 640px) 92vw, (max-width: 1024px) 448px, 450px"
                   className="object-cover"
                 />
 
