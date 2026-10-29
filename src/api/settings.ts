@@ -8,7 +8,9 @@ export const settingsService = {
    * Access: Public (no auth required)
    */
   getSettings: async (): Promise<SiteSettingDto> => {
-    const res = await apiClient.get<SiteSettingDto>('/api/settings');
+    const res = await apiClient.get<SiteSettingDto>('/api/settings', {
+      params: { _t: Date.now() },
+    });
     return res.data;
   },
 

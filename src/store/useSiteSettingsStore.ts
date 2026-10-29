@@ -86,12 +86,16 @@ export const useSiteSettingsStore = create<SiteSettingsState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       const data = await settingsService.getSettings();
-      const currentStored = getStoredSettings();
       if (data && data.storeName) {
         const merged: SiteSettingDto = {
           ...DEFAULT_SETTINGS,
           ...data,
-          ...currentStored, // Local admin changes take precedence if backend sync is pending
+          heroBadge: data.heroBadge || DEFAULT_HERO.heroBadge,
+          heroTitle: data.heroTitle || DEFAULT_HERO.heroTitle,
+          heroSubtitle: data.heroSubtitle || DEFAULT_HERO.heroSubtitle,
+          heroImageUrl: data.heroImageUrl || DEFAULT_HERO.heroImageUrl,
+          heroCardTag: data.heroCardTag || DEFAULT_HERO.heroCardTag,
+          heroCardTitle: data.heroCardTitle || DEFAULT_HERO.heroCardTitle,
         };
         set({
           settings: merged,
@@ -100,6 +104,7 @@ export const useSiteSettingsStore = create<SiteSettingsState>((set, get) => ({
         if (typeof window !== 'undefined') {
           try {
             localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(merged));
+            localStorage.removeItem(LEGACY_HERO_KEY);
           } catch {}
         }
       }
