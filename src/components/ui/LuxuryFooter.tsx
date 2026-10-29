@@ -133,9 +133,9 @@ export default function LuxuryFooter() {
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-xs uppercase tracking-widest text-[var(--text-primary)] font-semibold mb-4">
+            <h3 className="text-xs uppercase tracking-widest text-[var(--text-primary)] font-semibold mb-4">
               {language === 'ar' ? 'المجموعات' : 'Collections'}
-            </h4>
+            </h3>
             <ul className="space-y-2.5 text-sm">
               <li>
                 <Link href="/shop" className="hover:text-[var(--accent-gold)] transition-colors">
@@ -162,9 +162,9 @@ export default function LuxuryFooter() {
 
           {/* Client Care & Legal */}
           <div>
-            <h4 className="text-xs uppercase tracking-widest text-[var(--text-primary)] font-semibold mb-4">
+            <h3 className="text-xs uppercase tracking-widest text-[var(--text-primary)] font-semibold mb-4">
               {language === 'ar' ? 'خدمة العملاء والسياسات' : 'Client Services'}
-            </h4>
+            </h3>
             <ul className="space-y-2.5 text-sm">
               <li>
                 <Link href="/orders" className="hover:text-[var(--accent-gold)] transition-colors">
@@ -201,9 +201,9 @@ export default function LuxuryFooter() {
 
           {/* Newsletter Private Circle */}
           <div>
-            <h4 className="text-xs uppercase tracking-widest text-[var(--text-primary)] font-semibold mb-4">
+            <h3 className="text-xs uppercase tracking-widest text-[var(--text-primary)] font-semibold mb-4">
               {language === 'ar' ? 'النشرة الحصرية' : 'The Private Circle'}
-            </h4>
+            </h3>
             <p className="text-xs leading-relaxed mb-4 text-[var(--text-secondary)]">
               {language === 'ar'
                 ? 'اشتركي لتصلكِ معاينات المجموعات الملكية والتفاصيل الخاصة قبل الطرح العام.'
@@ -222,14 +222,16 @@ export default function LuxuryFooter() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    aria-label={language === 'ar' ? 'البريد الإلكتروني للنشرة الحصرية' : 'Email address for newsletter'}
                     placeholder={language === 'ar' ? 'بريدكِ الإلكتروني...' : 'Enter your email...'}
                     className="w-full bg-[var(--bg-secondary)] border border-[var(--border-subtle)] focus:border-[var(--accent-gold)] rounded-xl px-4 py-2.5 text-xs text-[var(--text-primary)] placeholder-[var(--text-secondary)]/50 focus:outline-none transition-colors"
                   />
                   <button
                     type="submit"
-                    className="absolute right-1 top-1 bottom-1 px-3 bg-[var(--accent-gold)] text-black rounded-lg text-xs font-bold hover:bg-[var(--accent-bronze)] hover:text-white transition-colors"
+                    aria-label={language === 'ar' ? 'اشتراك في النشرة الحصرية' : 'Subscribe to newsletter'}
+                    className="absolute right-1 top-1 bottom-1 min-w-[36px] px-3 bg-[var(--accent-gold)] text-black rounded-lg text-xs font-bold hover:bg-[var(--accent-bronze)] hover:text-white transition-colors flex items-center justify-center"
                   >
-                    <Mail className="w-3.5 h-3.5" />
+                    <Mail className="w-3.5 h-3.5" aria-hidden="true" />
                   </button>
                 </div>
               </form>

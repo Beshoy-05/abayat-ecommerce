@@ -191,14 +191,14 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
 
           {/* Top Story / Dash Indicators (when multiple images exist) */}
           {displayedImages.length > 1 && (
-            <div className="absolute top-2 inset-x-3 z-20 flex gap-1 items-center pointer-events-none">
+            <div className="absolute top-1.5 inset-x-3 z-20 flex gap-1.5 items-center pointer-events-none">
               {displayedImages.map((_, idx) => (
                 <button
                   key={idx}
                   type="button"
                   onClick={(e) => handleSelectDot(e, idx)}
                   aria-label={`Image slide ${idx + 1}`}
-                  className="pointer-events-auto h-5 flex-1 flex items-center cursor-pointer"
+                  className="pointer-events-auto min-h-[28px] h-7 min-w-[28px] flex-1 flex items-start pt-2 cursor-pointer"
                 >
                   <span
                     className={`block w-full h-1 rounded-full transition-all duration-500 ${
@@ -219,7 +219,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
                 type="button"
                 onClick={handlePrevImage}
                 aria-label="Previous Image"
-                className="absolute left-2.5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/60 hover:bg-[var(--accent-gold)] hover:text-black text-white/90 backdrop-blur-md border border-white/10 flex items-center justify-center opacity-0 group-hover/card-img:opacity-100 transition-all duration-300 hover:scale-110 shadow-lg cursor-pointer"
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/60 hover:bg-[var(--accent-gold)] hover:text-black text-white/90 lg:backdrop-blur-md border border-white/10 flex items-center justify-center opacity-0 pointer-events-none group-hover/card-img:opacity-100 group-hover/card-img:pointer-events-auto transition-all duration-300 hover:scale-110 shadow-lg cursor-pointer"
               >
                 <ChevronLeft className="w-4 h-4 rtl:rotate-180" />
               </button>
@@ -228,7 +228,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
                 type="button"
                 onClick={handleNextImage}
                 aria-label="Next Image"
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/60 hover:bg-[var(--accent-gold)] hover:text-black text-white/90 backdrop-blur-md border border-white/10 flex items-center justify-center opacity-0 group-hover/card-img:opacity-100 transition-all duration-300 hover:scale-110 shadow-lg cursor-pointer"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/60 hover:bg-[var(--accent-gold)] hover:text-black text-white/90 lg:backdrop-blur-md border border-white/10 flex items-center justify-center opacity-0 pointer-events-none group-hover/card-img:opacity-100 group-hover/card-img:pointer-events-auto transition-all duration-300 hover:scale-110 shadow-lg cursor-pointer"
               >
                 <ChevronRight className="w-4 h-4 rtl:rotate-180" />
               </button>
@@ -238,7 +238,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           {/* Badges */}
           <div
             className={`absolute ${
-              displayedImages.length > 1 ? 'top-6' : 'top-3'
+              displayedImages.length > 1 ? 'top-10' : 'top-3'
             } left-3 z-10 flex flex-col gap-1.5 items-start pointer-events-none`}
           >
             {hasDiscount && (
@@ -248,11 +248,11 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             )}
 
             {totalStock <= 5 && totalStock > 0 ? (
-              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-500/90 text-black shadow-md backdrop-blur-sm">
+              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-500/90 text-black shadow-md lg:backdrop-blur-sm">
                 {t.card.limitedStock.replace('{count}', totalStock.toString())}
               </span>
             ) : totalStock > 0 ? (
-              <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-black/60 text-[var(--accent-gold)] border border-[var(--accent-gold)]/40 shadow-sm backdrop-blur-sm">
+              <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-black/60 text-[var(--accent-gold)] border border-[var(--accent-gold)]/40 shadow-sm lg:backdrop-blur-sm">
                 {t.card.inStock}
               </span>
             ) : (
@@ -267,8 +267,8 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             onClick={handleFavoriteClick}
             aria-label="Add to Wishlist"
             className={`absolute ${
-              displayedImages.length > 1 ? 'top-6' : 'top-3'
-            } right-3 z-20 w-9 h-9 rounded-full bg-[var(--bg-surface)]/80 backdrop-blur-md border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-primary)] hover:text-rose-500 transition-all shadow-md group-hover:scale-105 cursor-pointer`}
+              displayedImages.length > 1 ? 'top-10' : 'top-3'
+            } right-3 z-20 w-10 h-10 rounded-full bg-[var(--bg-surface)]/90 lg:bg-[var(--bg-surface)]/80 lg:backdrop-blur-md border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-primary)] hover:text-rose-500 transition-all shadow-md group-hover:scale-105 cursor-pointer`}
           >
             <span className={`inline-flex transition-transform duration-200 ${isHeartBouncing ? 'scale-125' : 'scale-100'}`}>
               <Heart
@@ -280,7 +280,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           </button>
 
           {/* Quick View Button (Reveals on card hover) */}
-          <div className="absolute inset-x-4 bottom-4 z-20 translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+          <div className="absolute inset-x-4 bottom-4 z-20 translate-y-3 opacity-0 pointer-events-none group-hover:translate-y-0 group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-300">
             <button
               onClick={handleQuickViewClick}
               className="w-full py-2.5 px-4 rounded-full bg-[var(--bg-surface)]/95 backdrop-blur-md border border-[var(--border-subtle)] hover:border-[var(--accent-gold)] text-[var(--text-primary)] hover:text-[var(--accent-gold)] text-xs font-semibold uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 transition-colors cursor-pointer"
@@ -314,14 +314,15 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
 
           {/* Interactive Color Swatches */}
           {colorGroups.length > 0 && (
-            <div className="flex items-center gap-1.5 pt-1">
+            <div className="flex items-center flex-wrap gap-1.5 pt-1">
               {colorGroups.map((cg, idx) => (
                 <button
                   key={idx}
+                  type="button"
                   onMouseEnter={() => handleSwatchHover(cg)}
                   onClick={() => handleSwatchHover(cg)}
                   title={cg.color}
-                  className={`px-2 py-0.5 rounded text-[10px] font-medium border transition-all ${
+                  className={`min-h-[28px] min-w-[28px] px-2.5 py-1 rounded text-[10px] font-medium border transition-all ${
                     activeColor === cg.color
                       ? 'border-[var(--accent-gold)] bg-[var(--accent-gold)]/10 text-[var(--accent-gold)] font-bold'
                       : 'border-[var(--border-subtle)] text-[var(--text-secondary)] hover:border-[var(--accent-gold)]'
@@ -354,7 +355,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
 
             <Link
               href={`/product/${product.id}`}
-              className="text-[11px] uppercase tracking-wider font-semibold text-[var(--text-secondary)] group-hover:text-[var(--accent-gold)] transition-colors"
+              className="inline-flex items-center min-h-[28px] text-[11px] uppercase tracking-wider font-semibold text-[var(--text-secondary)] group-hover:text-[var(--accent-gold)] transition-colors"
             >
               {language === 'ar' ? 'التفاصيل ←' : 'Details →'}
             </Link>
