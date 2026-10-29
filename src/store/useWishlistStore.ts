@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Product } from '@/types/api';
-import { favoritesService } from '@/api/favorites';
 
 interface WishlistState {
   wishlistIds: number[];
@@ -27,6 +26,7 @@ export const useWishlistStore = create<WishlistState>()(
       fetchFavorites: async () => {
         try {
           set({ isLoading: true });
+          const { favoritesService } = await import('@/api/favorites');
           const raw = await favoritesService.getFavorites();
           const products = Array.isArray(raw)
             ? raw.filter((p, index, self) => p && p.id > 0 && index === self.findIndex((item) => item.id === p.id))
@@ -56,6 +56,7 @@ export const useWishlistStore = create<WishlistState>()(
 
           try {
             // Backend returns boolean: true if added, false if removed (Rule #5)
+            const { favoritesService } = await import('@/api/favorites');
             const result = await favoritesService.toggleFavorite(product.id);
             if (result && !exists) {
               set({
@@ -98,6 +99,7 @@ export const useWishlistStore = create<WishlistState>()(
 
         if (isAuthenticated) {
           try {
+            const { favoritesService } = await import('@/api/favorites');
             await favoritesService.removeFavorite(productId);
           } catch {
             // ignore

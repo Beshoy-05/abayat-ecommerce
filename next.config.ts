@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   devIndicators: false,
 
   experimental: {
+    inlineCss: true,
     optimizePackageImports: ["lucide-react", "framer-motion"],
   },
 

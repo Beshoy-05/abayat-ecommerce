@@ -47,13 +47,7 @@ export default function LuxuryHeader() {
   useEffect(() => {
     setMounted(true);
     loadFromStorage();
-    let settingsTimer: ReturnType<typeof setTimeout> | null = null;
-    if (pathname === '/') {
-      // Homepage already receives fresh settings from SSR; revalidate quietly after initial paint
-      settingsTimer = setTimeout(() => {
-        fetchSettings();
-      }, 4000);
-    } else {
+    if (pathname !== '/') {
       fetchSettings();
     }
     if (typeof window !== 'undefined' && localStorage.getItem('abaya_auth_token')) {
@@ -65,7 +59,6 @@ export default function LuxuryHeader() {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      if (settingsTimer) clearTimeout(settingsTimer);
     };
   }, [loadFromStorage, fetchSettings, fetchFavorites, pathname]);
 

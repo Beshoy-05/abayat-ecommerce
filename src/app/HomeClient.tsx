@@ -11,7 +11,6 @@ import {
   Gem,
   Crown,
 } from 'lucide-react';
-import { productsService } from '@/api/products';
 import { Product, SiteSettingDto } from '@/types/api';
 import { useThemeStore } from '@/store/useThemeStore';
 import { useSiteSettingsStore, DEFAULT_HERO } from '@/store/useSiteSettingsStore';
@@ -50,6 +49,7 @@ export default function HomeClient({ initialSettings, initialProducts }: HomeCli
     const fetchData = async () => {
       try {
         setLoading(true);
+        const { productsService } = await import('@/api/products');
         const prodRes = await productsService.getProducts({ pageSize: 8 });
         if (active) setProducts(prodRes.data || []);
       } catch (err) {
@@ -100,13 +100,13 @@ export default function HomeClient({ initialSettings, initialProducts }: HomeCli
   return (
     <div className="space-y-24 sm:space-y-32">
       {/* 👑 1. HAUTE-COUTURE EDITORIAL HERO */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-12 pb-20">
-        {/* Ambient Gold Radial Background Glow */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[radial-gradient(circle,rgba(224,185,116,0.1)_0%,rgba(0,0,0,0)_70%)] pointer-events-none blur-2xl" />
+      <section className="relative lg:min-h-[90vh] flex items-center justify-center overflow-hidden pt-6 pb-12 sm:pt-12 sm:pb-20">
+        {/* Ambient Gold Radial Background Glow (desktop/tablet only — avoids mobile software blur rasterization) */}
+        <div className="hidden sm:block absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[radial-gradient(circle,rgba(224,185,116,0.1)_0%,rgba(0,0,0,0)_70%)] pointer-events-none blur-2xl" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10">
           {/* Left Narrative */}
-          <div className="lg:col-span-7 space-y-6 text-center lg:text-left rtl:lg:text-right">
+          <div className="lg:col-span-7 space-y-4 sm:space-y-6 text-center lg:text-left rtl:lg:text-right">
             <ShimmerBadge icon={<Sparkles className="w-3.5 h-3.5" />}>
               {currentBadge}
             </ShimmerBadge>
@@ -125,7 +125,7 @@ export default function HomeClient({ initialSettings, initialProducts }: HomeCli
               {currentSubtitle}
             </p>
 
-            <div className="pt-4 flex flex-col sm:flex-row items-center justify-center lg:justify-start rtl:lg:justify-start gap-4">
+            <div className="pt-2 sm:pt-4 flex flex-col sm:flex-row items-center justify-center lg:justify-start rtl:lg:justify-start gap-3 sm:gap-4">
               <MagneticButton>
                 <Link
                   href="/shop"
@@ -138,14 +138,14 @@ export default function HomeClient({ initialSettings, initialProducts }: HomeCli
 
               <Link
                 href="/contact"
-                className="px-8 py-4 rounded-full border border-[var(--border-subtle)] hover:border-[var(--accent-gold)] text-[var(--text-primary)] hover:text-[var(--accent-gold)] text-xs uppercase tracking-[0.2em] font-semibold transition-all backdrop-blur-md"
+                className="px-8 py-4 rounded-full border border-[var(--border-subtle)] hover:border-[var(--accent-gold)] text-[var(--text-primary)] hover:text-[var(--accent-gold)] text-xs uppercase tracking-[0.2em] font-semibold transition-all lg:backdrop-blur-md"
               >
                 {t.hero.ctaSecondary}
               </Link>
             </div>
 
             {/* Quick Metrics */}
-            <div className="pt-8 border-t border-[var(--border-subtle)] grid grid-cols-3 gap-6 max-w-md mx-auto lg:mx-0">
+            <div className="pt-6 sm:pt-8 border-t border-[var(--border-subtle)] grid grid-cols-3 gap-6 max-w-md mx-auto lg:mx-0">
               <div>
                 <p className="font-serif text-2xl font-bold text-[var(--accent-gold)]">100%</p>
                 <p className="text-[11px] text-[var(--text-secondary)] uppercase tracking-wider mt-0.5">
@@ -186,13 +186,13 @@ export default function HomeClient({ initialSettings, initialProducts }: HomeCli
                   preload
                   fetchPriority="high"
                   loading="eager"
-                  decoding="sync"
+                  decoding="async"
                   sizes="(max-width: 640px) 380px, 448px"
                   className="object-cover"
                 />
 
-                {/* Floating Card Snippet */}
-                <div className="absolute bottom-6 inset-x-6 p-4 rounded-xl bg-[var(--bg-surface)]/85 backdrop-blur-xl border border-[var(--border-subtle)] shadow-2xl flex items-center justify-between">
+                {/* Floating Card Snippet (solid surface on mobile to avoid software backdrop-blur delay over LCP image; glassmorphic on desktop) */}
+                <div className="absolute bottom-6 inset-x-6 p-4 rounded-xl bg-[var(--bg-surface)]/95 lg:bg-[var(--bg-surface)]/85 lg:backdrop-blur-xl border border-[var(--border-subtle)] shadow-2xl flex items-center justify-between">
                   <div>
                     <span className="text-[9px] uppercase tracking-widest text-[var(--accent-gold)] font-bold">
                       {currentCardTag}

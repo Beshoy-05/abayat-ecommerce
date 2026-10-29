@@ -31,29 +31,41 @@
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  font-family: var(--font-body), 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-family: var(--font-arabic), 'Cairo', system-ui, sans-serif;
   transition: background-color 0.4s ease, color 0.4s ease;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Serif Headings */
-h1, h2, h3, .font-serif {
-  font-family: var(--font-serif), 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
+/* English / LTR Specific Typography (scoped strictly to dir="ltr" to avoid downloading Latin fonts on RTL) */
+html[dir="ltr"] body {
+  font-family: var(--font-body), 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+html[dir="ltr"] h1,
+html[dir="ltr"] h2,
+html[dir="ltr"] h3,
+html[dir="ltr"] .font-serif {
+  font-family: var(--font-serif), 'Playfair Display', Georgia, serif;
   letter-spacing: -0.01em;
 }
 
-/* Arabic Specific Typography */
-[dir="rtl"] body {
-  font-family: var(--font-arabic), 'Cairo', 'Amiri', system-ui, sans-serif;
+/* Arabic Specific Typography: preloaded Cairo on mobile (<769px) for zero font-swap reflow, Amiri editorial serif on desktop */
+html[dir="rtl"] h1,
+html[dir="rtl"] h2,
+html[dir="rtl"] h3,
+html[dir="rtl"] .font-serif {
+  font-family: var(--font-arabic), 'Cairo', system-ui, sans-serif;
 }
 
-[dir="rtl"] h1,
-[dir="rtl"] h2,
-[dir="rtl"] h3,
-[dir="rtl"] .font-serif {
-  font-family: var(--font-arabic-serif), 'Amiri', 'Cairo', serif;
+@media (min-width: 769px) {
+  html[dir="rtl"] h1,
+  html[dir="rtl"] h2,
+  html[dir="rtl"] h3,
+  html[dir="rtl"] .font-serif {
+    font-family: var(--font-arabic-serif), 'Amiri', 'Cairo', serif;
+  }
 }
 
 /* Luxury Gold Foil & Shimmer Effects */
@@ -117,25 +129,38 @@ h1, h2, h3, .font-serif {
   background: var(--accent-gold);
 }
 
-/* Keyframe Shimmer Animation for 21st.dev style elements */
+/* Keyframe Shimmer Animation (100% GPU-composited transform — zero non-composited repaints) */
 @keyframes goldShimmer {
   0% {
-    background-position: -200% 0;
+    transform: translate3d(-100%, 0, 0);
   }
   100% {
-    background-position: 200% 0;
+    transform: translate3d(100%, 0, 0);
   }
 }
 
 .shimmer-anim {
+  overflow: hidden;
+}
+
+.shimmer-anim:not(.absolute) {
+  position: relative;
+}
+
+.shimmer-anim::after {
+  content: "";
+  position: absolute;
+  inset: 0;
   background: linear-gradient(
     90deg,
     rgba(224, 185, 116, 0) 0%,
     rgba(224, 185, 116, 0.25) 50%,
     rgba(224, 185, 116, 0) 100%
   );
-  background-size: 200% 100%;
+  transform: translate3d(-100%, 0, 0);
+  will-change: transform;
   animation: goldShimmer 3s infinite linear;
+  pointer-events: none;
 }
 
 /* Subtle Film Grain Texture Overlay (Desktop only — avoids costly mobile SVG feTurbulence rasterization) */

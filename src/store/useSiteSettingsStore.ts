@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { SiteSettingDto } from '@/types/api';
-import { settingsService } from '@/api/settings';
 
 export const DEFAULT_HERO = {
   heroBadge: 'عبايات فاخرة 2026/2027',
@@ -86,6 +85,7 @@ export const useSiteSettingsStore = create<SiteSettingsState>((set, get) => ({
     if (get().isLoading) return;
     try {
       set({ isLoading: true, error: null });
+      const { settingsService } = await import('@/api/settings');
       const data = await settingsService.getSettings();
       if (data && data.storeName) {
         const merged: SiteSettingDto = {

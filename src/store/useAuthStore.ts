@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { UserProfile } from '@/types/api';
-import { accountService } from '@/api/account';
 
 export function extractRolesFromJwt(token: string | null | undefined): string[] {
   if (!token) return [];
@@ -171,6 +170,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     // Background verify and refresh profile
     try {
+      const { accountService } = await import('@/api/account');
       const freshProfile = await accountService.getProfile();
       const freshTokenRoles = extractRolesFromJwt(token);
       const combinedRoles = Array.from(

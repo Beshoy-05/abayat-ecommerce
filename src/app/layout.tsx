@@ -30,7 +30,7 @@ const cairo = Cairo({
 
 const amiri = Amiri({
   subsets: ['arabic'],
-  weight: ['400', '700'],
+  weight: ['400'],
   variable: '--font-arabic-serif',
   display: 'swap',
   preload: false,

@@ -1,8 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Cart, CartItem, ProductVariant, Product } from '@/types/api';
-import { cartService } from '@/api/cart';
-import { productsService } from '@/api/products';
 import { trackAddToCart, trackRemoveFromCart } from '@/utils/analytics';
 
 const VARIANT_META_CACHE_KEY = 'abaya_cart_variant_meta';
@@ -45,6 +43,7 @@ const enrichCartItems = async (items: CartItem[]): Promise<CartItem[]> => {
 
   if (missingMeta) {
     try {
+      const { productsService } = await import('@/api/products');
       const res = await productsService.getProducts({ pageSize: 50 });
       if (res && res.data) {
         res.data.forEach((p) => {
@@ -136,6 +135,7 @@ export const useCartStore = create<CartState>()(
       fetchCart: async () => {
         try {
           set({ isLoading: true });
+          const { cartService } = await import('@/api/cart');
           const liveCart = await cartService.getCart();
           if (liveCart && Array.isArray(liveCart.items)) {
             const enriched = await enrichCartItems(liveCart.items);
@@ -187,6 +187,7 @@ export const useCartStore = create<CartState>()(
         if (isAuthenticated) {
           try {
             set({ isLoading: true });
+            const { cartService } = await import('@/api/cart');
             // Strict Rule #2 & #4: sends ONLY productVariantId & quantity
             const res = await cartService.addToCart({
               productVariantId: variant.id,
@@ -258,6 +259,7 @@ export const useCartStore = create<CartState>()(
       removeItem: async (cartItemId: number, isAuthenticated: boolean) => {
         if (isAuthenticated) {
           try {
+            const { cartService } = await import('@/api/cart');
             await cartService.removeCartItem(cartItemId);
             await get().fetchCart();
           } catch {
