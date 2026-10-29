@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
-import { motion } from 'framer-motion';
 
 interface MagneticButtonProps {
   children: React.ReactNode;
@@ -16,10 +15,10 @@ export default function MagneticButton({
   onClick,
   disabled = false,
 }: MagneticButtonProps) {
-  const ref = useRef<HTMLButtonElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!ref.current || disabled) return;
     const { clientX, clientY } = e;
     const { left, top, width, height } = ref.current.getBoundingClientRect();
@@ -33,17 +32,18 @@ export default function MagneticButton({
   };
 
   return (
-    <motion.button
+    <div
       ref={ref}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      animate={{ x: position.x, y: position.y }}
-      transition={{ type: 'spring', stiffness: 150, damping: 15, mass: 0.1 }}
-      onClick={onClick}
-      disabled={disabled}
-      className={`relative inline-flex items-center justify-center cursor-pointer disabled:cursor-not-allowed select-none ${className}`}
+      onClick={disabled ? undefined : onClick}
+      style={{
+        transform: `translate3d(${position.x}px, ${position.y}px, 0)`,
+        transition: position.x === 0 && position.y === 0 ? 'transform 0.35s cubic-bezier(0.22, 1, 0.36, 1)' : 'transform 0.1s ease-out',
+      }}
+      className={`relative inline-flex items-center justify-center cursor-pointer select-none ${disabled ? 'opacity-50 pointer-events-none' : ''} ${className}`}
     >
       {children}
-    </motion.button>
+    </div>
   );
 }

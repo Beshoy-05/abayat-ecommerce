@@ -3,14 +3,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { Heart, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Product, ColorGroup } from '@/types/api';
 import { useWishlistStore } from '@/store/useWishlistStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useThemeStore } from '@/store/useThemeStore';
 import { translations } from '@/utils/translations';
-import QuickViewModal from './QuickViewModal';
-import { motion } from 'framer-motion';
+
+const QuickViewModal = dynamic(() => import('./QuickViewModal'), { ssr: false });
 
 interface ProductCardProps {
   product: Product;
@@ -32,6 +33,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
   const [activeColor, setActiveColor] = useState<string>(colorGroups[0]?.color || '');
   const [currentImgIndex, setCurrentImgIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [carouselReady, setCarouselReady] = useState(false);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
   const [isHeartBouncing, setIsHeartBouncing] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -45,13 +47,14 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
   // Compute total available units across all variants
   const totalStock = product.variants?.reduce((sum, v) => sum + (v.stockQuantity || 0), 0) ?? 10;
   const hasDiscount = Boolean(product.discount && product.discount > 0);
-  const finalPrice = product.finalPrice ?? (hasDiscount ? Number((product.price * (1 - (product.discount || 0) / 100)).toFixed(2)) : product.price);
+  const finalPrice =
+    product.finalPrice ??
+    (hasDiscount ? Number((product.price * (1 - (product.discount || 0) / 100)).toFixed(2)) : product.price);
 
   // Extract all valid images for this card / active color
   const displayedImages = useMemo(() => {
     const list: string[] = [];
 
-    // 1. If an active color is selected, check its specific color group images
     if (activeColor) {
       const matched = colorGroups.find((cg) => cg.color === activeColor);
       if (matched?.images && matched.images.length > 1) {
@@ -61,21 +64,18 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
       }
     }
 
-    // 2. If no multi-images found from color, fallback to product.images
     if (list.length === 0) {
       if (Array.isArray(product.images) && product.images.length > 0) {
         list.push(...product.images);
       }
     }
 
-    // 3. If still empty, check all color groups combined
     if (list.length === 0 && colorGroups.length > 0) {
       colorGroups.forEach((cg) => {
         if (Array.isArray(cg.images)) list.push(...cg.images);
       });
     }
 
-    // 4. Fallback to variants or pictureUrl
     if (list.length === 0) {
       if (Array.isArray(product.variants)) {
         product.variants.forEach((v) => {
@@ -87,7 +87,6 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
       }
     }
 
-    // Clean, filter falsy/empty and remove duplicates
     const unique = Array.from(
       new Set(list.filter((img) => typeof img === 'string' && img.trim().length > 0))
     );
@@ -95,29 +94,25 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
     return unique.length > 0 ? unique.slice(0, 8) : [initialImage];
   }, [activeColor, colorGroups, product.images, product.variants, product.pictureUrl, initialImage]);
 
-  // Keep index within bounds
   const safeImgIndex = currentImgIndex < displayedImages.length ? currentImgIndex : 0;
 
-  // Auto-flip images timer ("تقلب لوحدها")
+  // Auto-flip images on desktop hover (or after user activates carousel) to save mobile bandwidth & battery
   useEffect(() => {
-    if (displayedImages.length <= 1) return;
-
-    // Subtle stagger based on product id so all cards don't flip on the exact same frame
-    const stagger = ((product.id || 0) % 3) * 200;
-    const intervalDuration = isHovered ? 1300 : 2000 + stagger;
+    if (!isHovered || displayedImages.length <= 1) return;
+    setCarouselReady(true);
 
     const timer = setInterval(() => {
       setCurrentImgIndex((prev) => (prev + 1) % displayedImages.length);
-    }, intervalDuration);
+    }, 1500);
 
     return () => clearInterval(timer);
-  }, [displayedImages.length, isHovered, product.id]);
+  }, [displayedImages.length, isHovered]);
 
   const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsHeartBouncing(true);
-    setTimeout(() => setIsHeartBouncing(false), 500);
+    setTimeout(() => setIsHeartBouncing(false), 350);
     await toggleFavorite(product, isAuthenticated);
   };
 
@@ -135,26 +130,34 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
   const handlePrevImage = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    setCarouselReady(true);
     setCurrentImgIndex((prev) => (prev - 1 + displayedImages.length) % displayedImages.length);
   };
 
   const handleNextImage = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    setCarouselReady(true);
     setCurrentImgIndex((prev) => (prev + 1) % displayedImages.length);
   };
 
   const handleSelectDot = (e: React.MouseEvent, idx: number) => {
     e.preventDefault();
     e.stopPropagation();
+    setCarouselReady(true);
     setCurrentImgIndex(idx);
   };
+
+  const slidesToRender = carouselReady ? displayedImages : [displayedImages[0]];
 
   return (
     <>
       <div
         className="group relative flex flex-col rounded-2xl overflow-hidden bg-[var(--bg-surface)] border border-[var(--border-subtle)] hover:border-[var(--accent-gold)] transition-all duration-500 shadow-sm hover:shadow-xl"
-        onMouseEnter={() => setIsHovered(true)}
+        onMouseEnter={() => {
+          setIsHovered(true);
+          if (displayedImages.length > 1) setCarouselReady(true);
+        }}
         onMouseLeave={() => setIsHovered(false)}
       >
         {/* Visual Frame / Image Container */}
@@ -164,18 +167,20 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             className="absolute inset-0 block w-full h-full z-0"
             aria-label={product.name}
           >
-            {displayedImages.map((imgUrl, idx) => (
+            {slidesToRender.map((imgUrl, idx) => (
               <Image
                 key={`${imgUrl}-${idx}`}
                 src={imgUrl}
                 alt={`${product.name} - ${product.categoryName || 'عباية ملكية فاخرة'} | دار قصر العباية (صورة ${idx + 1})`}
                 fill
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                priority={priority && idx === 0}
-                className={`object-cover transition-all duration-500 ease-out group-hover:scale-105 ${
+                sizes="(max-width: 640px) 360px, (max-width: 1024px) 340px, 280px"
+                preload={priority && idx === 0}
+                fetchPriority={priority && idx === 0 ? 'high' : undefined}
+                loading={priority && idx === 0 ? 'eager' : 'lazy'}
+                className={`object-cover transition-opacity duration-500 ease-out group-hover:scale-105 ${
                   idx === safeImgIndex
-                    ? 'opacity-100 scale-100 z-0'
-                    : 'opacity-0 scale-105 pointer-events-none -z-10'
+                    ? 'opacity-100 z-0'
+                    : 'opacity-0 pointer-events-none -z-10'
                 }`}
               />
             ))}
@@ -193,13 +198,13 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
                   type="button"
                   onClick={(e) => handleSelectDot(e, idx)}
                   aria-label={`Image slide ${idx + 1}`}
-                  className="pointer-events-auto h-1 flex-1 rounded-full transition-all duration-300 overflow-hidden bg-black/40 backdrop-blur-sm cursor-pointer py-1 -my-1"
+                  className="pointer-events-auto h-5 flex-1 flex items-center cursor-pointer"
                 >
-                  <div
-                    className={`h-1 rounded-full transition-all duration-500 ${
+                  <span
+                    className={`block w-full h-1 rounded-full transition-all duration-500 ${
                       idx === safeImgIndex
                         ? 'bg-[var(--accent-gold)] shadow-[0_0_8px_rgba(224,185,116,0.8)]'
-                        : 'bg-white/40 hover:bg-white/80'
+                        : 'bg-black/40 hover:bg-white/80'
                     }`}
                   />
                 </button>
@@ -233,7 +238,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
           {/* Badges */}
           <div
             className={`absolute ${
-              displayedImages.length > 1 ? 'top-5' : 'top-3'
+              displayedImages.length > 1 ? 'top-6' : 'top-3'
             } left-3 z-10 flex flex-col gap-1.5 items-start pointer-events-none`}
           >
             {hasDiscount && (
@@ -262,16 +267,16 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             onClick={handleFavoriteClick}
             aria-label="Add to Wishlist"
             className={`absolute ${
-              displayedImages.length > 1 ? 'top-5' : 'top-3'
+              displayedImages.length > 1 ? 'top-6' : 'top-3'
             } right-3 z-20 w-9 h-9 rounded-full bg-[var(--bg-surface)]/80 backdrop-blur-md border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-primary)] hover:text-rose-500 transition-all shadow-md group-hover:scale-105 cursor-pointer`}
           >
-            <motion.div animate={isHeartBouncing ? { scale: [1, 1.35, 0.9, 1] } : { scale: 1 }}>
+            <span className={`inline-flex transition-transform duration-200 ${isHeartBouncing ? 'scale-125' : 'scale-100'}`}>
               <Heart
                 className={`w-4 h-4 transition-colors ${
                   isFavorited ? 'fill-rose-500 text-rose-500' : 'text-[var(--text-primary)]'
                 }`}
               />
-            </motion.div>
+            </span>
           </button>
 
           {/* Quick View Button (Reveals on card hover) */}
@@ -357,13 +362,14 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
         </div>
       </div>
 
-      {/* Quick View Modal */}
-      <QuickViewModal
-        product={product}
-        isOpen={quickViewOpen}
-        onClose={() => setQuickViewOpen(false)}
-      />
+      {/* Lazy Quick View Modal — only mounted when opened */}
+      {quickViewOpen && (
+        <QuickViewModal
+          product={product}
+          isOpen={quickViewOpen}
+          onClose={() => setQuickViewOpen(false)}
+        />
+      )}
     </>
   );
 }
-

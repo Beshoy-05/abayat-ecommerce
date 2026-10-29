@@ -61,6 +61,7 @@ interface SiteSettingsState {
   error: string | null;
   fetchSettings: () => Promise<void>;
   setSettings: (settings: SiteSettingDto) => void;
+  hydrateFromServer: (data: Partial<SiteSettingDto>) => void;
 }
 
 export const useSiteSettingsStore = create<SiteSettingsState>((set, get) => ({
@@ -125,6 +126,27 @@ export const useSiteSettingsStore = create<SiteSettingsState>((set, get) => ({
         console.warn('Could not cache site settings in localStorage:', e);
       }
     }
-    set({ settings: { ...get().settings, ...updated } });
+    set({ settings: { ...get().settings, ...updated }, isInitialized: true });
+  },
+
+  hydrateFromServer: (data: Partial<SiteSettingDto>) => {
+    if (!data || !data.storeName) return;
+    const merged: SiteSettingDto = {
+      ...DEFAULT_SETTINGS,
+      ...data,
+      heroBadge: data.heroBadge || DEFAULT_HERO.heroBadge,
+      heroTitle: data.heroTitle || DEFAULT_HERO.heroTitle,
+      heroSubtitle: data.heroSubtitle || DEFAULT_HERO.heroSubtitle,
+      heroImageUrl: data.heroImageUrl || DEFAULT_HERO.heroImageUrl,
+      heroCardTag: data.heroCardTag || DEFAULT_HERO.heroCardTag,
+      heroCardTitle: data.heroCardTitle || DEFAULT_HERO.heroCardTitle,
+    };
+    set({ settings: merged, isInitialized: true });
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(merged));
+        localStorage.removeItem(LEGACY_HERO_KEY);
+      } catch {}
+    }
   },
 }));

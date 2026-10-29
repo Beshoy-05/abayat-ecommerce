@@ -10,8 +10,8 @@ import { useThemeStore } from '@/store/useThemeStore';
 import { translations } from '@/utils/translations';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function SearchModal() {
-  const [isOpen, setIsOpen] = useState(false);
+export default function SearchModal({ defaultOpen = false }: { defaultOpen?: boolean }) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);

@@ -1,37 +1,39 @@
 import type { Metadata } from 'next';
 import { Playfair_Display, Plus_Jakarta_Sans, Cairo, Amiri } from 'next/font/google';
 import './globals.css';
-import QueryProvider from '@/providers/QueryProvider';
 import LenisProvider from '@/providers/LenisProvider';
 import LuxuryHeader from '@/components/ui/LuxuryHeader';
 import LuxuryFooter from '@/components/ui/LuxuryFooter';
-import CartSlideOver from '@/components/ui/CartSlideOver';
-import SearchModal from '@/components/ui/SearchModal';
+import LazyGlobalModals from '@/components/ui/LazyGlobalModals';
 import GlobalNotificationBanner from '@/components/ui/GlobalNotificationBanner';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
   variable: '--font-serif',
   display: 'swap',
+  preload: false,
 });
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
   variable: '--font-body',
   display: 'swap',
+  preload: false,
 });
 
 const cairo = Cairo({
-  subsets: ['arabic', 'latin'],
+  subsets: ['arabic'],
   variable: '--font-arabic',
   display: 'swap',
+  preload: true,
 });
 
 const amiri = Amiri({
-  subsets: ['arabic', 'latin'],
+  subsets: ['arabic'],
   weight: ['400', '700'],
   variable: '--font-arabic-serif',
   display: 'swap',
+  preload: false,
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://qasr-alabaya.vercel.app';
@@ -39,11 +41,11 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://qasr-alabaya.vercel
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "قصر العباية | دار عبايات الهوت كوتور والحرير الملكي",
-    template: "%s | قصر العباية",
+    default: 'قصر العباية | دار عبايات الهوت كوتور والحرير الملكي',
+    template: '%s | قصر العباية',
   },
   description:
-    "تسوقي أفخم العبايات السوداء الملكية وعبايات المناسبات من الحرير الياباني الخالص والكريب الإيطالي الفاخر بتطريز يدوي. معاينة واستبدال 14 يوماً ودفع عند الاستلام وإنستاباي.",
+    'تسوقي أفخم العبايات السوداء الملكية وعبايات المناسبات من الحرير الياباني الخالص والكريب الإيطالي الفاخر بتطريز يدوي. معاينة واستبدال 14 يوماً ودفع عند الاستلام وإنستاباي.',
   keywords: [
     'قصر العباية',
     'عبايات سوداء ملكية',
@@ -180,6 +182,7 @@ export default function RootLayout({
         '@id': `${currentBaseUrl}/#website`,
         url: currentBaseUrl,
         name: 'قصر العباية',
+        alternateName: ['Qasr Al-Abaya', 'دار قصر العباية'],
         publisher: {
           '@id': `${currentBaseUrl}/#organization`,
         },
@@ -204,8 +207,6 @@ export default function RootLayout({
       className={`dark ${playfair.variable} ${plusJakarta.variable} ${cairo.variable} ${amiri.variable}`}
     >
       <head>
-        <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(enterpriseSchema) }}
@@ -215,30 +216,25 @@ export default function RootLayout({
         suppressHydrationWarning
         className="min-h-screen flex flex-col bg-[var(--bg-primary)] text-[var(--text-primary)] antialiased selection:bg-[var(--accent-gold)] selection:text-black"
       >
-        <QueryProvider>
-          <LenisProvider>
-            {/* Subtle grain overlay for authentic film/couture feel */}
-            <div className="grain-overlay" />
+        <LenisProvider>
+          {/* Subtle grain overlay for authentic film/couture feel (desktop only) */}
+          <div className="grain-overlay" />
 
-            {/* Global API rate limit / 401 toast banner */}
-            <GlobalNotificationBanner />
+          {/* Global API rate limit / 401 toast banner */}
+          <GlobalNotificationBanner />
 
-            {/* Haute-Couture Glassmorphic Sticky Header */}
-            <LuxuryHeader />
+          {/* Haute-Couture Glassmorphic Sticky Header */}
+          <LuxuryHeader />
 
-            {/* Main Application Page Content */}
-            <main className="flex-1 w-full">{children}</main>
+          {/* Main Application Page Content */}
+          <main className="flex-1 w-full">{children}</main>
 
-            {/* Slide-over Mini Bag */}
-            <CartSlideOver />
+          {/* Lazy-loaded Mini Bag & Search Modal */}
+          <LazyGlobalModals />
 
-            {/* Interactive Luxury Search Modal */}
-            <SearchModal />
-
-            {/* Haute-Couture Editorial Footer */}
-            <LuxuryFooter />
-          </LenisProvider>
-        </QueryProvider>
+          {/* Haute-Couture Editorial Footer */}
+          <LuxuryFooter />
+        </LenisProvider>
       </body>
     </html>
   );

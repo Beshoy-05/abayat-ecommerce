@@ -24,7 +24,6 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useSiteSettingsStore } from '@/store/useSiteSettingsStore';
 import { translations } from '@/utils/translations';
 import { CurrencyCode } from '@/types/api';
-import { motion, AnimatePresence } from 'framer-motion';
 import SocialMediaLinks from '@/components/ui/SocialIcons';
 
 export default function LuxuryHeader() {
@@ -48,16 +47,27 @@ export default function LuxuryHeader() {
   useEffect(() => {
     setMounted(true);
     loadFromStorage();
-    fetchSettings();
+    let settingsTimer: ReturnType<typeof setTimeout> | null = null;
+    if (pathname === '/') {
+      // Homepage already receives fresh settings from SSR; revalidate quietly after initial paint
+      settingsTimer = setTimeout(() => {
+        fetchSettings();
+      }, 4000);
+    } else {
+      fetchSettings();
+    }
     if (typeof window !== 'undefined' && localStorage.getItem('abaya_auth_token')) {
       fetchFavorites();
     }
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [loadFromStorage, fetchSettings, fetchFavorites]);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (settingsTimer) clearTimeout(settingsTimer);
+    };
+  }, [loadFromStorage, fetchSettings, fetchFavorites, pathname]);
 
   // Dynamic Browser Tab / Page Title based on Admin Store Name
   useEffect(() => {
@@ -157,34 +167,27 @@ export default function LuxuryHeader() {
                 <span className="text-[9px]">▼</span>
               </button>
 
-              <AnimatePresence>
-                {isCurrencyDropdownOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 5 }}
-                    className="absolute right-0 mt-2 w-28 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg shadow-xl py-1 z-50"
-                  >
-                    {(Object.keys(CURRENCY_RATES) as CurrencyCode[]).map((curr) => (
-                      <button
-                        key={curr}
-                        onClick={() => {
-                          setCurrency(curr);
-                          setIsCurrencyDropdownOpen(false);
-                        }}
-                        className={`w-full text-left px-3 py-1.5 text-xs hover:bg-[var(--accent-gold)]/10 hover:text-[var(--accent-gold)] transition-colors flex justify-between ${
-                          currency === curr ? 'text-[var(--accent-gold)] font-bold' : ''
-                        }`}
-                      >
-                        <span>{curr}</span>
-                        <span className="text-[var(--text-secondary)]">
-                          {CURRENCY_RATES[curr].symbolAr}
-                        </span>
-                      </button>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {isCurrencyDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-28 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg shadow-xl py-1 z-50">
+                  {(Object.keys(CURRENCY_RATES) as CurrencyCode[]).map((curr) => (
+                    <button
+                      key={curr}
+                      onClick={() => {
+                        setCurrency(curr);
+                        setIsCurrencyDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-3 py-1.5 text-xs hover:bg-[var(--accent-gold)]/10 hover:text-[var(--accent-gold)] transition-colors flex justify-between ${
+                        currency === curr ? 'text-[var(--accent-gold)] font-bold' : ''
+                      }`}
+                    >
+                      <span>{curr}</span>
+                      <span className="text-[var(--text-secondary)]">
+                        {CURRENCY_RATES[curr].symbolAr}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Language Switcher */}
@@ -281,18 +284,11 @@ export default function LuxuryHeader() {
             aria-label="Saved favorites"
           >
             <Heart className="w-5 h-5" />
-            <AnimatePresence>
-              {wishlistCount > 0 && (
-                <motion.span
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  exit={{ scale: 0 }}
-                  className="absolute -top-1 -right-1 bg-[var(--accent-gold)] text-black font-bold text-[10px] w-4 h-4 rounded-full flex items-center justify-center shadow-sm"
-                >
-                  {wishlistCount}
-                </motion.span>
-              )}
-            </AnimatePresence>
+            {wishlistCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-[var(--accent-gold)] text-black font-bold text-[10px] w-4 h-4 rounded-full flex items-center justify-center shadow-sm">
+                {wishlistCount}
+              </span>
+            )}
           </Link>
 
           {/* My Orders Quick Icon */}
@@ -334,38 +330,19 @@ export default function LuxuryHeader() {
             aria-label="Open shopping bag"
           >
             <ShoppingBag className="w-5 h-5 group-hover:scale-105 transition-transform" />
-            <AnimatePresence>
-              {cartCount > 0 && (
-                <motion.span
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  exit={{ scale: 0 }}
-                  className="absolute -top-1 -right-1 bg-[var(--accent-gold)] text-black font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shadow-md animate-pulse"
-                >
-                  {cartCount}
-                </motion.span>
-              )}
-            </AnimatePresence>
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-[var(--accent-gold)] text-black font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shadow-md animate-pulse">
+                {cartCount}
+              </span>
+            )}
           </button>
         </div>
       </div>
 
       {/* Mobile Slide-in Drawer Menu */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm lg:hidden"
-          >
-            <motion.div
-              initial={{ x: language === 'ar' ? '100%' : '-100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: language === 'ar' ? '100%' : '-100%' }}
-              transition={{ type: 'tween', duration: 0.3 }}
-              className="w-4/5 max-w-sm h-full bg-[var(--bg-surface)] p-6 flex flex-col justify-between border-r border-[var(--border-subtle)]"
-            >
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm lg:hidden">
+          <div className="w-4/5 max-w-sm h-full bg-[var(--bg-surface)] p-6 flex flex-col justify-between border-r border-[var(--border-subtle)] transition-transform duration-300">
               <div>
                 <div className="flex justify-between items-center pb-6 border-b border-[var(--border-subtle)]">
                   <div>
@@ -465,10 +442,9 @@ export default function LuxuryHeader() {
                   <SocialMediaLinks className="flex items-center justify-center gap-3 pt-2" includeWhatsApp={true} />
                 </div>
               </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         )}
-      </AnimatePresence>
     </header>
   );
 }
