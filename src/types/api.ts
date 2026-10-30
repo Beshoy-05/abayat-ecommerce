@@ -77,6 +77,7 @@ export interface Category {
 
 export interface CartItem {
   id: number;
+  productId?: number;
   productVariantId: number;
   productName: string;
   color: string;

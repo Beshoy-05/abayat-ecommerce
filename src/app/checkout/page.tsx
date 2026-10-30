@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -71,6 +71,8 @@ export default function CheckoutPage() {
 
   const items = isAuthenticated && cart?.items ? cart.items : guestItems;
   const subtotal = getSubtotal();
+  const hasTrackedBeginCheckoutRef = useRef(false);
+  const hasTrackedPurchaseRef = useRef(false);
 
   useEffect(() => {
     deliveryService
@@ -82,20 +84,26 @@ export default function CheckoutPage() {
         }
       })
       .catch(console.error);
+  }, []);
 
-    if (items.length > 0) {
+  useEffect(() => {
+    if (!hasTrackedBeginCheckoutRef.current && items.length > 0 && !placedOrderId) {
+      hasTrackedBeginCheckoutRef.current = true;
       trackBeginCheckout({
         total: subtotal,
         itemsCount: items.length,
         items: items.map((it) => ({
           variantId: it.productVariantId,
+          productId: it.productId,
           name: it.productName,
+          color: it.color,
+          size: it.size,
           price: it.unitPrice,
           quantity: it.quantity,
         })),
       });
     }
-  }, [items, subtotal]);
+  }, [items, subtotal, placedOrderId]);
 
   const selectedDelivery = deliveryMethods.find((d) => d.id === selectedDeliveryMethodId);
   const deliveryCost = selectedDelivery ? selectedDelivery.cost : 0;
@@ -204,6 +212,18 @@ export default function CheckoutPage() {
         })),
       };
 
+      const orderItemsSnapshot = items.map((it) => ({
+        variantId: it.productVariantId,
+        productId: it.productId,
+        name: it.productName,
+        color: it.color,
+        size: it.size,
+        price: it.unitPrice,
+        quantity: it.quantity,
+      }));
+      const orderTotalSnapshot = totalWithShipping;
+      const shippingSnapshot = deliveryCost;
+
       const orderId = await ordersService.createOrder(payload);
       setPlacedOrderId(orderId);
 
@@ -219,20 +239,17 @@ export default function CheckoutPage() {
         // ignore
       }
 
-      // Track Purchase in DataLayer
-      await trackPurchase({
-        orderId,
-        total: totalWithShipping,
-        shipping: deliveryCost,
-        customerEmail: email || user?.email,
-        customerPhone: phone || user?.phoneNumber,
-        items: items.map((it) => ({
-          variantId: it.productVariantId,
-          name: it.productName,
-          price: it.unitPrice,
-          quantity: it.quantity,
-        })),
-      });
+      // Track Purchase in GA4 ONLY after order creation succeeds (zero PII, deduplicated)
+      if (!hasTrackedPurchaseRef.current && orderId) {
+        hasTrackedPurchaseRef.current = true;
+        trackPurchase({
+          orderId,
+          total: orderTotalSnapshot,
+          shipping: shippingSnapshot,
+          paymentMethod,
+          items: orderItemsSnapshot,
+        });
+      }
 
       clearCart();
     } catch (err: unknown) {

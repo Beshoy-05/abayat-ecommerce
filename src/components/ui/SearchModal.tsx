@@ -8,6 +8,7 @@ import { productsService } from '@/api/products';
 import { Product } from '@/types/api';
 import { useThemeStore } from '@/store/useThemeStore';
 import { translations } from '@/utils/translations';
+import { trackSelectItem } from '@/utils/analytics';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function SearchModal({ defaultOpen = false }: { defaultOpen?: boolean }) {
@@ -124,11 +125,26 @@ export default function SearchModal({ defaultOpen = false }: { defaultOpen?: boo
             {/* Results */}
             <div className="max-h-96 overflow-y-auto p-4 space-y-3">
               {results.length > 0 ? (
-                results.map((product) => (
+                results.map((product, idx) => (
                   <Link
                     key={product.id}
                     href={`/product/${product.id}`}
-                    onClick={() => setIsOpen(false)}
+                    onClick={() => {
+                      trackSelectItem({
+                        id: product.id,
+                        name: product.name,
+                        price:
+                          product.finalPrice ??
+                          (product.discount && product.discount > 0
+                            ? Number((product.price * (1 - product.discount / 100)).toFixed(2))
+                            : product.price),
+                        category: product.categoryName,
+                        listId: 'search_results',
+                        listName: 'Search Modal Results',
+                        index: idx + 1,
+                      });
+                      setIsOpen(false);
+                    }}
                     className="flex items-center gap-4 p-3 rounded-xl hover:bg-[var(--bg-secondary)] transition-colors group border border-transparent hover:border-[var(--border-subtle)]"
                   >
                     <div className="w-14 h-16 rounded-lg bg-[var(--bg-primary)] overflow-hidden relative flex-shrink-0" style={{ position: 'relative' }}>

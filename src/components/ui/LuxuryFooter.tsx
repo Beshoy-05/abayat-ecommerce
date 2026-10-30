@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useThemeStore } from '@/store/useThemeStore';
 import { useSiteSettingsStore } from '@/store/useSiteSettingsStore';
 import { translations } from '@/utils/translations';
+import { openConsentPreferences } from '@/utils/analytics';
 import {
   Mail,
   MessageCircle,
@@ -190,6 +191,15 @@ export default function LuxuryFooter() {
                 <Link href="/privacy" className="hover:text-[var(--accent-gold)] transition-colors">
                   {language === 'ar' ? 'سياسة الخصوصية' : 'Privacy Policy (PDPL)'}
                 </Link>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={openConsentPreferences}
+                  className="hover:text-[var(--accent-gold)] transition-colors text-start cursor-pointer"
+                >
+                  {language === 'ar' ? 'تفضيلات الخصوصية والتحليلات' : 'Privacy & Cookie Preferences'}
+                </button>
               </li>
               <li>
                 <Link href="/contact" className="hover:text-[var(--accent-gold)] transition-colors">

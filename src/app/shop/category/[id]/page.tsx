@@ -9,6 +9,7 @@ import { categoriesService } from '@/api/categories';
 import { Product, Category } from '@/types/api';
 import { useThemeStore } from '@/store/useThemeStore';
 import { translations } from '@/utils/translations';
+import { trackViewItemList } from '@/utils/analytics';
 import ProductCard from '@/components/ui/ProductCard';
 import ShimmerBadge from '@/components/ui/ShimmerBadge';
 
@@ -31,7 +32,26 @@ export default function CategoryPage() {
           productsService.getProducts({ categoryId: Number(id), pageSize: 24 }),
         ]);
         setCategory(catData);
-        setProducts(prodData.data || []);
+        const categoryProducts = prodData.data || [];
+        setProducts(categoryProducts);
+        if (categoryProducts.length > 0) {
+          trackViewItemList(
+            categoryProducts.map((p) => {
+              const sellingPrice = p.finalPrice ?? p.price;
+              return {
+                id: p.id,
+                name: p.name,
+                price: sellingPrice,
+                discount: p.price > sellingPrice ? Number((p.price - sellingPrice).toFixed(2)) : undefined,
+                category: p.categoryName || catData?.name,
+              };
+            }),
+            {
+              listId: `category_${id}`,
+              listName: catData?.name || `Category ${id}`,
+            }
+          );
+        }
       } catch (err) {
         console.error('Failed to fetch category:', err);
       } finally {
@@ -77,8 +97,14 @@ export default function CategoryPage() {
         </div>
       ) : products.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {products.map((p) => (
-            <ProductCard key={p.id} product={p} />
+          {products.map((p, idx) => (
+            <ProductCard
+              key={p.id}
+              product={p}
+              listId={`category_${id}`}
+              listName={category?.name || `Category ${id}`}
+              index={idx + 1}
+            />
           ))}
         </div>
       ) : (

@@ -218,12 +218,17 @@ function ShopContent() {
 
         if (res.data && res.data.length > 0) {
           trackViewItemList(
-            res.data.map((p) => ({
-              id: p.id,
-              name: p.name,
-              price: p.finalPrice ?? p.price,
-              category: p.categoryName,
-            }))
+            res.data.map((p) => {
+              const sellingPrice = p.finalPrice ?? p.price;
+              return {
+                id: p.id,
+                name: p.name,
+                price: sellingPrice,
+                discount: p.price > sellingPrice ? Number((p.price - sellingPrice).toFixed(2)) : undefined,
+                category: p.categoryName,
+              };
+            }),
+            { listId: 'shop_catalog', listName: 'Shop Catalog' }
           );
         }
       } catch (err) {
@@ -601,8 +606,14 @@ function ShopContent() {
           ) : products.length > 0 ? (
             <div className="space-y-10">
               <div className={`grid grid-cols-1 sm:grid-cols-2 ${gridCols === 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-6`}>
-                {products.map((product) => (
-                  <ProductCard key={product.id} product={product} />
+                {products.map((product, idx) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    listId="shop_catalog"
+                    listName="Shop Catalog"
+                    index={idx + 1}
+                  />
                 ))}
               </div>
 

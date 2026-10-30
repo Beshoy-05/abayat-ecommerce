@@ -6,6 +6,7 @@ import LuxuryHeader from '@/components/ui/LuxuryHeader';
 import LuxuryFooter from '@/components/ui/LuxuryFooter';
 import LazyGlobalModals from '@/components/ui/LazyGlobalModals';
 import GlobalNotificationBanner from '@/components/ui/GlobalNotificationBanner';
+import GoogleAnalyticsConsent from '@/components/analytics/GoogleAnalyticsConsent';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -235,6 +236,9 @@ export default function RootLayout({
           {/* Haute-Couture Editorial Footer */}
           <LuxuryFooter />
         </LenisProvider>
+
+        {/* Consent-aware Google Analytics 4 (`@next/third-parties/google`) */}
+        <GoogleAnalyticsConsent gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
       </body>
     </html>
   );

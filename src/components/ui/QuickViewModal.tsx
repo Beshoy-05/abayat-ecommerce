@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { X, Check, ShoppingBag, Eye, ArrowRight, ShieldCheck, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -9,6 +9,7 @@ import { useCartStore } from '@/store/useCartStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useThemeStore } from '@/store/useThemeStore';
 import { translations } from '@/utils/translations';
+import { trackViewItem } from '@/utils/analytics';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface QuickViewModalProps {
@@ -28,6 +29,16 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isAdding, setIsAdding] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
+  const hasTrackedModalOpenRef = useRef(false);
+
+  useEffect(() => {
+    if (isOpen && product && !hasTrackedModalOpenRef.current) {
+      hasTrackedModalOpenRef.current = true;
+      trackViewItem(product);
+    } else if (!isOpen) {
+      hasTrackedModalOpenRef.current = false;
+    }
+  }, [isOpen, product]);
 
   const colorGroups: ColorGroup[] = product?.colorGroups || [];
   const hasDiscount = Boolean(product?.discount && product.discount > 0);

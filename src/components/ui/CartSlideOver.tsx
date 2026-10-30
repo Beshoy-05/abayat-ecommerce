@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { X, Trash2, ArrowRight, ShoppingBag, ShieldCheck } from 'lucide-react';
@@ -8,6 +8,7 @@ import { useCartStore } from '@/store/useCartStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useThemeStore } from '@/store/useThemeStore';
 import { translations } from '@/utils/translations';
+import { trackViewCart } from '@/utils/analytics';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function CartSlideOver() {
@@ -24,6 +25,29 @@ export default function CartSlideOver() {
 
   const items = isAuthenticated && cart?.items ? cart.items : guestItems;
   const subtotal = getSubtotal();
+  const wasOpenRef = useRef(false);
+
+  useEffect(() => {
+    if (isCartOpen && !wasOpenRef.current) {
+      wasOpenRef.current = true;
+      if (items.length > 0) {
+        trackViewCart({
+          total: subtotal,
+          items: items.map((it) => ({
+            variantId: it.productVariantId,
+            productId: it.productId,
+            name: it.productName,
+            color: it.color,
+            size: it.size,
+            price: it.unitPrice,
+            quantity: it.quantity,
+          })),
+        });
+      }
+    } else if (!isCartOpen) {
+      wasOpenRef.current = false;
+    }
+  }, [isCartOpen, items, subtotal]);
 
   return (
     <AnimatePresence>

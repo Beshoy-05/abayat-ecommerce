@@ -854,8 +854,14 @@ export default function ProductDetailClient({
               {language === 'ar' ? 'قطع كوتور قد تنال إعجابكِ' : 'Complementary Atelier Pieces'}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {relatedProducts.slice(0, 4).map((p) => (
-                <ProductCard key={p.id} product={p} />
+              {relatedProducts.slice(0, 4).map((p, idx) => (
+                <ProductCard
+                  key={p.id}
+                  product={p}
+                  listId="related_products"
+                  listName="Related Products"
+                  index={idx + 1}
+                />
               ))}
             </div>
           </section>

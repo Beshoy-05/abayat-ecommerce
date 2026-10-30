@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -17,6 +17,7 @@ import { useCartStore } from '@/store/useCartStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useThemeStore } from '@/store/useThemeStore';
 import { translations } from '@/utils/translations';
+import { trackViewCart } from '@/utils/analytics';
 import ShimmerBadge from '@/components/ui/ShimmerBadge';
 
 export default function CartPage() {
@@ -40,6 +41,25 @@ export default function CartPage() {
   const subtotal = getSubtotal();
   const discountAmount = (subtotal * discountPercent) / 100;
   const finalTotal = Math.max(0, subtotal - discountAmount);
+  const hasTrackedViewCartRef = useRef(false);
+
+  useEffect(() => {
+    if (!hasTrackedViewCartRef.current && items.length > 0) {
+      hasTrackedViewCartRef.current = true;
+      trackViewCart({
+        total: subtotal,
+        items: items.map((it) => ({
+          variantId: it.productVariantId,
+          productId: it.productId,
+          name: it.productName,
+          color: it.color,
+          size: it.size,
+          price: it.unitPrice,
+          quantity: it.quantity,
+        })),
+      });
+    }
+  }, [items, subtotal]);
 
   const handleApplyPromo = (e: React.FormEvent) => {
     e.preventDefault();

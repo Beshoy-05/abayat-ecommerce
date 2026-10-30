@@ -88,6 +88,7 @@ const enrichCartItems = async (items: CartItem[]): Promise<CartItem[]> => {
 
     return {
       ...item,
+      productId: item.productId || meta?.productId,
       productName,
       color,
       size,
@@ -198,6 +199,7 @@ export const useCartStore = create<CartState>()(
               variantId: variant.id,
               productId: product.id,
               name: product.name,
+              category: product.categoryName,
               price: sellingPrice,
               color: variant.color,
               size: variant.size,
@@ -229,6 +231,7 @@ export const useCartStore = create<CartState>()(
           } else {
             const newItem: CartItem = {
               id: Date.now(),
+              productId: product.id,
               productVariantId: variant.id,
               productName: product.name,
               color: variant.color,
@@ -245,6 +248,7 @@ export const useCartStore = create<CartState>()(
             variantId: variant.id,
             productId: product.id,
             name: product.name,
+            category: product.categoryName,
             price: sellingPrice,
             color: variant.color,
             size: variant.size,
@@ -258,9 +262,21 @@ export const useCartStore = create<CartState>()(
 
       removeItem: async (cartItemId: number, isAuthenticated: boolean) => {
         if (isAuthenticated) {
+          const removedAuthItem = get().cart?.items?.find((i) => i.id === cartItemId);
           try {
             const { cartService } = await import('@/api/cart');
             await cartService.removeCartItem(cartItemId);
+            if (removedAuthItem) {
+              trackRemoveFromCart({
+                variantId: removedAuthItem.productVariantId,
+                productId: removedAuthItem.productId,
+                name: removedAuthItem.productName,
+                color: removedAuthItem.color,
+                size: removedAuthItem.size,
+                price: removedAuthItem.unitPrice,
+                quantity: removedAuthItem.quantity,
+              });
+            }
             await get().fetchCart();
           } catch {
             // fallback
@@ -270,7 +286,10 @@ export const useCartStore = create<CartState>()(
           if (removed) {
             trackRemoveFromCart({
               variantId: removed.productVariantId,
+              productId: removed.productId,
               name: removed.productName,
+              color: removed.color,
+              size: removed.size,
               price: removed.unitPrice,
               quantity: removed.quantity,
             });

@@ -10,15 +10,25 @@ import { useWishlistStore } from '@/store/useWishlistStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useThemeStore } from '@/store/useThemeStore';
 import { translations } from '@/utils/translations';
+import { trackSelectItem } from '@/utils/analytics';
 
 const QuickViewModal = dynamic(() => import('./QuickViewModal'), { ssr: false });
 
 interface ProductCardProps {
   product: Product;
   priority?: boolean;
+  listId?: string;
+  listName?: string;
+  index?: number;
 }
 
-export default function ProductCard({ product, priority = false }: ProductCardProps) {
+export default function ProductCard({
+  product,
+  priority = false,
+  listId,
+  listName,
+  index,
+}: ProductCardProps) {
   const { wishlistIds, toggleFavorite } = useWishlistStore();
   const { isAuthenticated } = useAuthStore();
   const { language, formatPrice } = useThemeStore();
@@ -121,9 +131,22 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
     setCurrentImgIndex(0);
   };
 
+  const handleSelectProduct = () => {
+    trackSelectItem({
+      id: product.id,
+      name: product.name,
+      price: finalPrice,
+      category: product.categoryName,
+      listId,
+      listName,
+      index,
+    });
+  };
+
   const handleQuickViewClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    handleSelectProduct();
     setQuickViewOpen(true);
   };
 
@@ -164,6 +187,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
         <div className="relative aspect-[3/4] w-full overflow-hidden bg-[var(--bg-secondary)] block group/card-img">
           <Link
             href={`/product/${product.id}`}
+            onClick={handleSelectProduct}
             className="absolute inset-0 block w-full h-full z-0"
             aria-label={product.name}
           >
@@ -305,7 +329,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             </div>
 
             {/* Product Name */}
-            <Link href={`/product/${product.id}`} className="block mt-1">
+            <Link href={`/product/${product.id}`} onClick={handleSelectProduct} className="block mt-1">
               <h3 className="font-serif text-base sm:text-lg font-light text-[var(--text-primary)] group-hover:text-[var(--accent-gold)] transition-colors line-clamp-1">
                 {product.name}
               </h3>
@@ -355,6 +379,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
 
             <Link
               href={`/product/${product.id}`}
+              onClick={handleSelectProduct}
               className="inline-flex items-center min-h-[28px] text-[11px] uppercase tracking-wider font-semibold text-[var(--text-secondary)] group-hover:text-[var(--accent-gold)] transition-colors"
             >
               {language === 'ar' ? 'التفاصيل ←' : 'Details →'}

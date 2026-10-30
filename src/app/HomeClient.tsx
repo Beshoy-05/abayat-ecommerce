@@ -15,6 +15,7 @@ import { Product, SiteSettingDto } from '@/types/api';
 import { useThemeStore } from '@/store/useThemeStore';
 import { useSiteSettingsStore, DEFAULT_HERO } from '@/store/useSiteSettingsStore';
 import { translations } from '@/utils/translations';
+import { trackViewItemList } from '@/utils/analytics';
 import ProductCard from '@/components/ui/ProductCard';
 import ShimmerBadge from '@/components/ui/ShimmerBadge';
 import SpotlightCard from '@/components/ui/SpotlightCard';
@@ -64,6 +65,24 @@ export default function HomeClient({ initialSettings, initialProducts }: HomeCli
       active = false;
     };
   }, [initialProducts]);
+
+  useEffect(() => {
+    if (products.length > 0) {
+      trackViewItemList(
+        products.map((p) => {
+          const sellingPrice = p.finalPrice ?? p.price;
+          return {
+            id: p.id,
+            name: p.name,
+            price: sellingPrice,
+            discount: p.price > sellingPrice ? Number((p.price - sellingPrice).toFixed(2)) : undefined,
+            category: p.categoryName,
+          };
+        }),
+        { listId: 'home_featured', listName: 'Homepage Curated Collection' }
+      );
+    }
+  }, [products]);
 
   const perks = [
     {
@@ -270,8 +289,14 @@ export default function HomeClient({ initialSettings, initialProducts }: HomeCli
           </div>
         ) : products.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
+            {products.map((product, idx) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                listId="home_featured"
+                listName="Homepage Curated Collection"
+                index={idx + 1}
+              />
             ))}
           </div>
         ) : (
